@@ -1,4 +1,4 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.Seedwork;
+﻿namespace SocialNetwork.Domain.Common;
 
 public abstract class Entity<TId> where TId : IEquatable<TId>
 {

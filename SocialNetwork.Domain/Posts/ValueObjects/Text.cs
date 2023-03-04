@@ -1,4 +1,4 @@
-﻿using Microsoft.eShopOnContainers.Services.Ordering.Domain.SeedWork;
+﻿using SocialNetwork.Domain.Common;
 
 namespace SocialNetwork.Domain.Posts.ValueObjects;
 

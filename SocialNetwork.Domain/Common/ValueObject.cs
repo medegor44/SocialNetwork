@@ -1,4 +1,4 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.SeedWork;
+﻿namespace SocialNetwork.Domain.Common;
 
 public abstract class ValueObject
 {
