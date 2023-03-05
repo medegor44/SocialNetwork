@@ -19,7 +19,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers" />
+      <Folder Include="Controllers\User\Requests" />
+      <Folder Include="Models" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SocialNetwork.Domain\SocialNetwork.Domain.csproj" />
+      <ProjectReference Include="..\SocialNetwork.Services\SocialNetwork.Services.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 ﻿using SocialNetwork.Domain.Common;
+using SocialNetwork.Domain.Common.Exceptions;
 
 namespace SocialNetwork.Domain.Users.ValueObjects;
 
@@ -9,7 +10,7 @@ public class Name : ValueObject
     public Name(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Must contain at least one non whitespace character", nameof(name));
+            throw new ArgumentValidationFailedException("Must contain at least one non whitespace character", nameof(name));
         Value = name.Trim();
     }
 
