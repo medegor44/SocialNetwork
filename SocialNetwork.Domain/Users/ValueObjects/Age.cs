@@ -1,4 +1,5 @@
 ﻿using SocialNetwork.Domain.Common;
+using SocialNetwork.Domain.Common.Exceptions;
 
 namespace SocialNetwork.Domain.Users.ValueObjects;
 
@@ -9,7 +10,7 @@ public class Age : ValueObject
     public Age(int value)
     {
         if (value <= 0)
-            throw new ArgumentException("Mut be positive", nameof(value));
+            throw new ArgumentValidationFailedException("Mut be positive", nameof(value));
         Value = value;
     }
     
