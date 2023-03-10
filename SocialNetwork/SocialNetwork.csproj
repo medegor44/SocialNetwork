@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
         <PackageReference Include="FluentMigrator" Version="3.3.2" />
         <PackageReference Include="FluentMigrator.Runner" Version="3.3.2" />
@@ -22,8 +23,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\SocialNetwork.DataAccess\SocialNetwork.DataAccess.csproj" />
       <ProjectReference Include="..\SocialNetwork.Domain\SocialNetwork.Domain.csproj" />
       <ProjectReference Include="..\SocialNetwork.Migrations\SocialNetwork.Migrations.csproj" />
+      <ProjectReference Include="..\SocialNetwork.Postgres\SocialNetwork.Postgres.csproj" />
       <ProjectReference Include="..\SocialNetwork.Services\SocialNetwork.Services.csproj" />
     </ItemGroup>
 

@@ -19,7 +19,8 @@ public class UserController : Controller
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IResult> Register(
         RegisterRequestDto requestDto, 
-        [FromServices] IRequestHandler<CreateUserCommand, CreateUserCommandResponse> handler)
+        [FromServices] IRequestHandler<CreateUserCommand, CreateUserCommandResponse> handler,
+        CancellationToken cancellationToken)
     {
         var response = await handler.HandleAsync(new(
             requestDto.FirstName, 
@@ -27,7 +28,7 @@ public class UserController : Controller
             requestDto.Age, 
             requestDto.Biography, 
             requestDto.City,
-            requestDto.Password));
+            requestDto.Password), cancellationToken);
 
         return Results.Ok(new RegisterSuccessfulResponseDto(response.Id));
     }
@@ -40,9 +41,10 @@ public class UserController : Controller
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IResult> GetById(
         [FromRoute] Guid id, 
-        [FromServices] IRequestHandler<GetUserByIdQuery, GetUserByIdQueryResponse> handler)
+        [FromServices] IRequestHandler<GetUserByIdQuery, GetUserByIdQueryResponse> handler,
+        CancellationToken cancellationToken)
     {
-        var response = await handler.HandleAsync(new(id));
+        var response = await handler.HandleAsync(new(id), cancellationToken);
 
         return Results.Ok(new GetUserResponseDto(
             response.UserDto.Id,
@@ -62,9 +64,10 @@ public class UserController : Controller
     public async Task<IResult> Search(
         [FromQuery] string firstName, 
         [FromQuery] string secondName, 
-        [FromServices] IRequestHandler<GetUserByFilterQuery, GetUserByFilterQueryResponse> handler)
+        [FromServices] IRequestHandler<GetUserByFilterQuery, GetUserByFilterQueryResponse> handler,
+        CancellationToken cancellationToken)
     {
-        var response = await handler.HandleAsync(new(firstName, secondName));
+        var response = await handler.HandleAsync(new(firstName, secondName), cancellationToken);
 
         return Results.Ok(response.Users.Select(x => new GetUserResponseDto(
                 x.Id,

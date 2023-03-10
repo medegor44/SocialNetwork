@@ -13,7 +13,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Creat
         _userRepository = userRepository;
     }
 
-    public async Task<CreateUserCommandResponse> HandleAsync(CreateUserCommand request)
+    public async Task<CreateUserCommandResponse> HandleAsync(CreateUserCommand request,
+        CancellationToken cancellationToken)
     {
         var user = new User(
             new(request.FirstName), 
@@ -22,7 +23,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Creat
             new(request.Biography),
             request.City);
 
-        var id = await _userRepository.CreateAsync(user);
+        var id = await _userRepository.CreateAsync(user, cancellationToken);
 
         return new(id);
     }

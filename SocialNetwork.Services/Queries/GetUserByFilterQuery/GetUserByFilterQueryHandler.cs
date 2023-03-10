@@ -13,7 +13,8 @@ public class GetUserByFilterQueryHandler : IRequestHandler<GetUserByFilterQuery,
         _repository = repository;
     }
     
-    public async Task<GetUserByFilterQueryResponse> HandleAsync(GetUserByFilterQuery request)
+    public async Task<GetUserByFilterQueryResponse> HandleAsync(GetUserByFilterQuery request,
+        CancellationToken cancellationToken)
     {
         var users = await _repository.GetByFilterAsync(new(request.FirstName, request.SecondName));
 

@@ -1,4 +1,4 @@
-﻿namespace SocialNetwork.Migrations;
+﻿namespace SocialNetwork.Postgres;
 
 public class PostgresConnectionOptions
 {
