@@ -36,6 +36,10 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Migrate": {
+      "commandName": "Project",
+      "commandLineArgs": "migrate"
     }
   }
 }
