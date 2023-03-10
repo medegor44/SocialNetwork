@@ -12,7 +12,8 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, GetUser
         _repository = repository;
     }
     
-    public async Task<GetUserByIdQueryResponse> HandleAsync(GetUserByIdQuery request)
+    public async Task<GetUserByIdQueryResponse> HandleAsync(GetUserByIdQuery request,
+        CancellationToken cancellationToken)
     {
         var user = await _repository.GetByIdAsync(request.Id);
 
