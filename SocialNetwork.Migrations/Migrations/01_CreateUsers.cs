@@ -9,11 +9,13 @@ public class CreateUsers : Migration
     {
         Create.Table("Users")
             .WithColumn("Id").AsGuid().PrimaryKey()
-            .WithColumn("FirstName").AsCustom("VARCHAR(100)")
-            .WithColumn("SecondName").AsCustom("VARCHAR(100)")
+            .WithColumn("FirstName").AsString(200)
+            .WithColumn("SecondName").AsString(200)
             .WithColumn("Age").AsInt32()
             .WithColumn("Biography").AsCustom("TEXT")
-            .WithColumn("CityId").AsGuid();
+            .WithColumn("CityId").AsGuid()
+            .WithColumn("Password").AsString(200)
+            .WithColumn("Salt").AsString(200);
     }
 
     public override void Down()
