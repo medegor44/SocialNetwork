@@ -23,6 +23,6 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, GetUser
             user.LastName.Value, 
             user.Age.Value, 
             user.Biography.Value,
-            user.City));
+            ""));
     }
 }

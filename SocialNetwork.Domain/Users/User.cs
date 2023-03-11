@@ -5,7 +5,7 @@ namespace SocialNetwork.Domain.Users;
 
 public sealed class User : Entity<Guid>, IAggregateRoot
 {
-    public string City { get; }
+    public Guid CityId { get; }
     public Name FirstName { get; }
     public Name LastName { get; }
     public Age Age { get; }
@@ -13,16 +13,16 @@ public sealed class User : Entity<Guid>, IAggregateRoot
     public IReadOnlyCollection<Guid> FriendIds { get; } = new List<Guid>();
     public IReadOnlyCollection<Guid> PostsIds { get; } = new List<Guid>();
 
-    public User(Name firstName, Name lastName, Age age, Biography biography, string city)
+    public User(Name firstName, Name lastName, Age age, Biography biography, Guid cityId)
     {
-        City = city;
+        CityId = cityId;
         FirstName = firstName;
         LastName = lastName;
         Age = age;
         Biography = biography;
     }
     
-    public User(Guid id, Name firstName, Name lastName, Age age, Biography biography, string city) 
+    public User(Guid id, Name firstName, Name lastName, Age age, Biography biography, Guid city) 
         : this(firstName, lastName, age, biography, city) 
     {
         Id = id;
@@ -34,7 +34,7 @@ public sealed class User : Entity<Guid>, IAggregateRoot
         Name lastName, 
         Age age, 
         Biography biography, 
-        string city,
+        Guid city,
         IReadOnlyCollection<Guid> friendIds)
         : this(id, firstName, lastName, age, biography, city)
     {
@@ -47,7 +47,7 @@ public sealed class User : Entity<Guid>, IAggregateRoot
         Name lastName, 
         Age age, 
         Biography biography, 
-        string city,
+        Guid city,
         IReadOnlyCollection<Guid> friendIds, 
         IReadOnlyCollection<Guid> postsIdsIds)
         : this(id, firstName, lastName, age, biography, city, friendIds)
