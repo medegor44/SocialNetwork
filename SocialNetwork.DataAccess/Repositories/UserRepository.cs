@@ -16,22 +16,21 @@ public class UserRepository : IUserRepository
         _source = source;
     }
     
-    public async Task<Guid> CreateAsync(User user, CancellationToken cancellationToken)
+    public async Task<Guid> CreateAsync(User user, Password password, CancellationToken cancellationToken)
     {
         var dto = new CreateUserDbDto
         {
             Id = Guid.NewGuid(),
-            Age = 18,
-            Biography = "xxx",
-            CityId = Guid.Empty,
-            FirstName = "Abc",
-            SecondName = "Def",
-            Password = "1234",
-            Salt = "1"
+            Age = user.Age.Value,
+            Biography = user.Biography.Value,
+            CityId = user.CityId,
+            FirstName = user.FirstName.Value,
+            SecondName = user.LastName.Value,
+            RawPassword = password.Value,
         };
         
         var sql = $"""
-INSERT INTO "{TableName}" ("Id", "FirstName", "SecondName", "Age", "Biography", "CityId", "Password", "Salt") 
+INSERT INTO "{TableName}" ("Id", "FirstName", "SecondName", "Age", "Biography", "CityId", "Password") 
 VALUES (
         @{nameof(CreateUserDbDto.Id)},
         @{nameof(CreateUserDbDto.FirstName)}, 
@@ -39,8 +38,7 @@ VALUES (
         @{nameof(CreateUserDbDto.Age)}, 
         @{nameof(CreateUserDbDto.Biography)}, 
         @{nameof(CreateUserDbDto.CityId)}, 
-        @{nameof(CreateUserDbDto.Password)}, 
-        @{nameof(CreateUserDbDto.Salt)})
+        CRYPT(@{nameof(CreateUserDbDto.RawPassword)}, GEN_SALT('md5'))) 
 RETURNING "Id"
 """;
         var connection = _source.CreateConnection();
@@ -51,12 +49,11 @@ RETURNING "Id"
         command.Parameters.AddWithValue(nameof(dto.Age), dto.Age);
         command.Parameters.AddWithValue(nameof(dto.Biography), dto.Biography);
         command.Parameters.AddWithValue(nameof(dto.CityId), dto.CityId);
-        command.Parameters.AddWithValue(nameof(dto.Password), dto.Password);
-        command.Parameters.AddWithValue(nameof(dto.Salt), dto.Salt);
+        command.Parameters.AddWithValue(nameof(dto.RawPassword), dto.RawPassword);
 
         await connection.OpenAsync(cancellationToken);
 
-        if (!(await command.ExecuteScalarAsync(cancellationToken) is Guid id))
+        if (await command.ExecuteScalarAsync(cancellationToken) is not Guid id)
             throw new Exception("Не удалось создать пользователя");
         
         return id;

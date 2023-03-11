@@ -8,6 +8,5 @@ public class CreateUserDbDto
     public int Age { get; set; }
     public string Biography { get; set; }
     public Guid CityId { get; set; }
-    public string Password { get; set; }
-    public string Salt { get; set; }
+    public string RawPassword { get; set; }
 }

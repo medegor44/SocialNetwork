@@ -21,9 +21,9 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Creat
             new(request.SecondName), 
             new(request.Age), 
             new(request.Biography),
-            request.City);
+            Guid.Empty);
 
-        var id = await _userRepository.CreateAsync(user, cancellationToken);
+        var id = await _userRepository.CreateAsync(user, new(request.Password), cancellationToken);
 
         return new(id);
     }
