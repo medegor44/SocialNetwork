@@ -4,8 +4,8 @@ namespace SocialNetwork.Domain.Users.Repositories;
 
 public interface IUserRepository
 {
-    Task<Guid> CreateAsync(User user, Password password, CancellationToken cancellationToken);
-    Task<User> GetByIdAsync(Guid id);
+    Task<Guid> CreateAsync(User user, CancellationToken cancellationToken);
+    Task<User> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<User>> GetByFilterAsync(UserFilter filter);
     Task AddFriendAsync(Guid firstUserId, Guid secondUserId);
     Task RemoveFriendAsync(Guid firstUserId, Guid secondUserId);

@@ -4,17 +4,18 @@ namespace SocialNetwork.Domain.Users.ValueObjects;
 
 public class Password : ValueObject
 {
-    public string Value { get; }
+    public string HashedValue { get; }
+    public string Salt { get; }
 
-    public Password(string value)
+    public Password(string hashedValue, string salt)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Должен содержать хотя бы один непробельный символ", nameof(value));
-        Value = value;
+        HashedValue = hashedValue;
+        Salt = salt;
     }
     
     protected override IEnumerable<object> GetEqualityComponents()
     {
-        yield return Value;
+        yield return HashedValue;
+        yield return Salt;
     }
 }
