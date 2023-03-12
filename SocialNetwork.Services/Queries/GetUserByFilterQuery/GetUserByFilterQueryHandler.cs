@@ -13,18 +13,9 @@ public class GetUserByFilterQueryHandler : IRequestHandler<GetUserByFilterQuery,
         _repository = repository;
     }
     
-    public async Task<GetUserByFilterQueryResponse> HandleAsync(GetUserByFilterQuery request,
+    public Task<GetUserByFilterQueryResponse> HandleAsync(GetUserByFilterQuery request,
         CancellationToken cancellationToken)
     {
-        var users = await _repository.GetByFilterAsync(new(request.FirstName, request.SecondName));
-
-        return new(users.Select(user => new GetUserDto(
-                user.Id,
-                user.FirstName.Value,
-                user.LastName.Value,
-                user.Age.Value,
-                user.Biography.Value,
-                ""))
-            .ToList());
+        throw new NotImplementedException();
     }
 }
