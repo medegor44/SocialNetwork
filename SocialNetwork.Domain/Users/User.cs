@@ -1,11 +1,12 @@
 ﻿using SocialNetwork.Domain.Common;
+using SocialNetwork.Domain.Users.Entities;
 using SocialNetwork.Domain.Users.ValueObjects;
 
 namespace SocialNetwork.Domain.Users;
 
 public sealed class User : Entity<Guid>, IAggregateRoot
 {
-    public Guid CityId { get; }
+    public City City { get; }
     public Name FirstName { get; }
     public Name LastName { get; }
     public Age Age { get; }
@@ -14,9 +15,9 @@ public sealed class User : Entity<Guid>, IAggregateRoot
     public IReadOnlyCollection<Guid> PostsIds { get; } = new List<Guid>();
     public Password Password { get; }
 
-    public User(Name firstName, Name lastName, Age age, Biography biography, Guid cityId, Password password)
+    public User(Name firstName, Name lastName, Age age, Biography biography, City city, Password password)
     {
-        CityId = cityId;
+        City = city;
         FirstName = firstName;
         LastName = lastName;
         Age = age;
@@ -24,7 +25,7 @@ public sealed class User : Entity<Guid>, IAggregateRoot
         Password = password;
     }
     
-    public User(Guid id, Name firstName, Name lastName, Age age, Biography biography, Guid city, Password password) 
+    public User(Guid id, Name firstName, Name lastName, Age age, Biography biography, City city, Password password) 
         : this(firstName, lastName, age, biography, city, password) 
     {
         Id = id;
@@ -36,7 +37,7 @@ public sealed class User : Entity<Guid>, IAggregateRoot
         Name lastName, 
         Age age, 
         Biography biography, 
-        Guid city, Password password,
+        City city, Password password,
         IReadOnlyCollection<Guid> friendIds)
         : this(id, firstName, lastName, age, biography, city, password)
     {
@@ -49,7 +50,7 @@ public sealed class User : Entity<Guid>, IAggregateRoot
         Name lastName, 
         Age age, 
         Biography biography, 
-        Guid city, Password password,
+        City city, Password password,
         IReadOnlyCollection<Guid> friendIds, 
         IReadOnlyCollection<Guid> postsIdsIds)
         : this(id, firstName, lastName, age, biography, city, password, friendIds)

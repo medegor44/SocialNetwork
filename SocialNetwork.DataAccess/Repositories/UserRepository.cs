@@ -1,9 +1,6 @@
-﻿using Microsoft.VisualBasic.CompilerServices;
-using Npgsql;
-using NpgsqlTypes;
+﻿using Npgsql;
 using SocialNetwork.Domain.Users;
 using SocialNetwork.Domain.Users.Repositories;
-using SocialNetwork.Domain.Users.ValueObjects;
 using SocialNetwork.DataAccess.DbDto;
 
 namespace SocialNetwork.DataAccess.Repositories;
@@ -11,7 +8,8 @@ namespace SocialNetwork.DataAccess.Repositories;
 public class UserRepository : IUserRepository
 {
     private readonly NpgsqlDataSource _source;
-    private const string TableName = "Users";
+    private const string UsersTableName = "Users";
+    private const string CitiesTableName = "Cities";
 
     public UserRepository(NpgsqlDataSource source)
     {
@@ -25,7 +23,8 @@ public class UserRepository : IUserRepository
             Id = Guid.NewGuid(),
             Age = user.Age.Value,
             Biography = user.Biography.Value,
-            CityId = user.CityId,
+            CityId = user.City.Id,
+            CityName = user.City.Name,
             FirstName = user.FirstName.Value,
             SecondName = user.LastName.Value,
             Password = user.Password.HashedValue,
@@ -33,7 +32,7 @@ public class UserRepository : IUserRepository
         };
         
         var sql = $"""
-INSERT INTO "{TableName}" ("Id", "FirstName", "SecondName", "Age", "Biography", "CityId", "Password", "Salt") 
+INSERT INTO "{UsersTableName}" ("Id", "FirstName", "SecondName", "Age", "Biography", "CityId", "Password", "Salt") 
 VALUES (
         @{nameof(UserDbDto.Id)},
         @{nameof(UserDbDto.FirstName)}, 
@@ -64,31 +63,32 @@ RETURNING "Id"
         return id;
     }
 
-    public async Task<User> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var sql = $"""
 SELECT 
-    "Id", 
-    "FirstName", 
-    "SecondName", 
-    "Age", 
-    "Biography", 
-    "CityId", 
-    "Password", 
-    "Salt"
+    u."Id", 
+    u."FirstName", 
+    u."SecondName", 
+    u."Age", 
+    u."Biography", 
+    u."CityId", 
+    u."Password", 
+    u."Salt",
+    c."Name" 
 FROM
-    "{TableName}"
+    "{UsersTableName}" u JOIN "{CitiesTableName}" c ON u."CityId" = c."Id"
 WHERE
-    "Id" = @{nameof(UserDbDto.Id)}
+    u."Id" = @{nameof(UserDbDto.Id)}
 """;
         var connection = _source.CreateConnection();
         await using var query = new NpgsqlCommand(sql, connection);
         query.Parameters.AddWithValue(nameof(UserDbDto.Id), id);
 
         await connection.OpenAsync(cancellationToken);
-        var reader = await query.ExecuteReaderAsync(cancellationToken);
+        await using var reader = await query.ExecuteReaderAsync(cancellationToken);
         if (!await reader.ReadAsync(cancellationToken))
-            throw new Exception("Not found");
+            return null;
 
         var dto = new UserDbDto
         {
@@ -99,7 +99,8 @@ WHERE
             Biography = reader.GetString(4),
             CityId = reader.GetGuid(5),
             Password = reader.GetString(6),
-            Salt = reader.GetString(7)
+            Salt = reader.GetString(7),
+            CityName = reader.GetString(8)
         };
 
         return new User(
@@ -108,22 +109,7 @@ WHERE
             new(dto.SecondName), 
             new(dto.Age), 
             new(dto.Biography), 
-            dto.CityId,
+            new(dto.CityId, dto.CityName),
             new(dto.Password, dto.Salt));
-    }
-
-    public Task<IReadOnlyCollection<User>> GetByFilterAsync(UserFilter filter)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task AddFriendAsync(Guid firstUserId, Guid secondUserId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task RemoveFriendAsync(Guid firstUserId, Guid secondUserId)
-    {
-        throw new NotImplementedException();
     }
 }
