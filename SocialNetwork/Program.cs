@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using SocialNetwork;
 using SocialNetwork.DataAccess.Extensions;
+using SocialNetwork.Middleware;
 using SocialNetwork.Migrations;
 using SocialNetwork.Postgres;
 using SocialNetwork.Services.Extensions;
@@ -55,6 +56,9 @@ else
         app.UseSwagger();
         app.UseSwaggerUI();
     }
+
+    app.UseMiddleware<BadStatusCodesHandlingMiddleware>();
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
 
     app.UseHttpsRedirection();
 

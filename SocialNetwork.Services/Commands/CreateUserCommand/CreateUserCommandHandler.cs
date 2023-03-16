@@ -1,8 +1,10 @@
 ﻿using SocialNetwork.Domain.Dictionaries;
 using SocialNetwork.Domain.Users;
+using SocialNetwork.Domain.Users.Entities;
 using SocialNetwork.Domain.Users.Repositories;
 using SocialNetwork.Services.Abstractions;
 using SocialNetwork.Services.CommonServices;
+using SocialNetwork.Services.Exceptions;
 
 namespace SocialNetwork.Services.Commands.CreateUserCommand;
 
@@ -27,7 +29,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Creat
     {
         var cities = await _citiesRepository.GetByName(request.City, cancellationToken);
         if (!cities.Any())
-            throw new Exception("Not found");
+            throw new BadRequestException($"City with name {request.City} does not exists");
         
         var password = _passwordHashingService.Hash(request.Password);
 

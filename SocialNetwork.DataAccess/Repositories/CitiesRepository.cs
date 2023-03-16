@@ -61,7 +61,7 @@ WHERE
         var connection = _dataSource.CreateConnection();
         await using var query = new NpgsqlCommand(sql, connection);
 
-        query.Parameters.AddWithValue(nameof(DictionaryItemDbDto.Id), name);
+        query.Parameters.AddWithValue(nameof(DictionaryItemDbDto.Name), name);
         
         await connection.OpenAsync(cancellationToken);
         await using var reader = await query.ExecuteReaderAsync(cancellationToken);

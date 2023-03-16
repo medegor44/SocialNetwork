@@ -2,6 +2,7 @@
 using SocialNetwork.Domain.Users;
 using SocialNetwork.Domain.Users.Repositories;
 using SocialNetwork.DataAccess.DbDto;
+using SocialNetwork.DataAccess.Exceptions;
 
 namespace SocialNetwork.DataAccess.Repositories;
 
@@ -58,7 +59,7 @@ RETURNING "Id"
         await connection.OpenAsync(cancellationToken);
 
         if (await command.ExecuteScalarAsync(cancellationToken) is not Guid id)
-            throw new Exception("Не удалось создать пользователя");
+            throw new InfrastructureException("Couldn't create user");
         
         return id;
     }
