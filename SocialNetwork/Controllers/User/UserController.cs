@@ -3,6 +3,7 @@ using SocialNetwork.Controllers.Common;
 using SocialNetwork.Controllers.Requests;
 using SocialNetwork.Services.Abstractions;
 using SocialNetwork.Services.Commands.CreateUserCommand;
+using SocialNetwork.Services.Exceptions;
 using SocialNetwork.Services.Queries.GetUserByFilterQuery;
 using SocialNetwork.Services.Queries.GetUserByIdQuery;
 
@@ -16,27 +17,36 @@ public class UserController : Controller
     [ProducesResponseType(typeof(RegisterSuccessfulResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status503ServiceUnavailable)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status400BadRequest)]
     public async Task<IResult> Register(
         RegisterRequestDto requestDto, 
         [FromServices] IRequestHandler<CreateUserCommand, CreateUserCommandResponse> handler,
         CancellationToken cancellationToken)
     {
-        var response = await handler.HandleAsync(new(
-            requestDto.FirstName, 
-            requestDto.SecondName, 
-            requestDto.Age, 
-            requestDto.Biography, 
-            requestDto.City,
-            requestDto.Password), cancellationToken);
+        CreateUserCommandResponse response;
+        try
+        {
+            response = await handler.HandleAsync(new(
+                requestDto.FirstName, 
+                requestDto.SecondName, 
+                requestDto.Age, 
+                requestDto.Biography, 
+                requestDto.City,
+                requestDto.Password), cancellationToken);
 
+        }
+        catch (BadRequestException e)
+        {
+            return Results.BadRequest(e.Message);
+        }
+        
         return Results.Ok(new RegisterSuccessfulResponseDto(response.Id));
     }
 
     [HttpGet("get/{id:guid}")]
     [ProducesResponseType(typeof(GetUserResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IResult> GetById(
@@ -44,7 +54,15 @@ public class UserController : Controller
         [FromServices] IRequestHandler<GetUserByIdQuery, GetUserByIdQueryResponse> handler,
         CancellationToken cancellationToken)
     {
-        var response = await handler.HandleAsync(new(id), cancellationToken);
+        GetUserByIdQueryResponse response;
+        try
+        {
+            response = await handler.HandleAsync(new(id), cancellationToken);
+        }
+        catch (NotFoundException e)
+        {
+            return Results.NotFound(e.Message);
+        }
 
         return Results.Ok(new GetUserResponseDto(
             response.UserDto.Id,
@@ -54,28 +72,5 @@ public class UserController : Controller
             response.UserDto.Biography,
             response.UserDto.City
         ));
-    }
-
-    [HttpGet("search")]
-    [ProducesResponseType(typeof(List<GetUserResponseDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status500InternalServerError)]
-    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status503ServiceUnavailable)]
-    public async Task<IResult> Search(
-        [FromQuery] string firstName, 
-        [FromQuery] string secondName, 
-        [FromServices] IRequestHandler<GetUserByFilterQuery, GetUserByFilterQueryResponse> handler,
-        CancellationToken cancellationToken)
-    {
-        var response = await handler.HandleAsync(new(firstName, secondName), cancellationToken);
-
-        return Results.Ok(response.Users.Select(x => new GetUserResponseDto(
-                x.Id,
-                x.FirstName,
-                x.SecondName,
-                x.Age,
-                x.Biography,
-                x.City))
-            .ToList());
     }
 }
