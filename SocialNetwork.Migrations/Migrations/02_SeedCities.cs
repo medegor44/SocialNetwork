@@ -6,7 +6,11 @@ namespace SocialNetwork.Migrations.Migrations;
 [Migration(2)]
 public class SeedCities : Migration 
 {
+#if DEBUG
     private const string File = "../SocialNetwork.Migrations/Data/Cities.txt";
+#else
+    private const string File = "./Data/Cities.txt";
+#endif
 
     public override void Up()
     {

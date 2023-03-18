@@ -1,7 +1,5 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
@@ -11,10 +9,13 @@ COPY . .
 WORKDIR "/src/SocialNetwork"
 RUN dotnet build "SocialNetwork.csproj" -c Release -o /app/build
 
-FROM build AS publish
-RUN dotnet publish "SocialNetwork.csproj" -c Release -o /app/publish
+FROM base AS migrate
+WORKDIR /app/migrate
+COPY --from=build /app/build .
+COPY ["SocialNetwork.Migrations/Data/Cities.txt", "./Data/"]
+ENTRYPOINT ["dotnet", "SocialNetwork.dll", "migrate"]
 
-FROM base AS final
+FROM base AS run
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/build .
 ENTRYPOINT ["dotnet", "SocialNetwork.dll"]

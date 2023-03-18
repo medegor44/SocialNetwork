@@ -8,3 +8,20 @@ services:
       POSTGRES_PASSWORD: "postgres"
     ports:
       - "5432:5432"
+  migrate:
+    build:
+      context: .
+      dockerfile: "SocialNetwork/Dockerfile"
+      target: migrate
+    depends_on:
+      - postgres
+  web:
+    build:
+      context: .
+      dockerfile: "SocialNetwork/Dockerfile"
+    image: "hl-social-network"
+    container_name: "hl-social-network"
+    ports:
+      - "5045:80"
+    depends_on:
+      - migrate
