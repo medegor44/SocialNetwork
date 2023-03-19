@@ -1,0 +1,618 @@
+{
+	"info": {
+		"_postman_id": "98f92caa-d45f-45c9-abec-77bce3185eda",
+		"name": "SocialNetwork Copy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "/User/register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "text/plain"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"quis\",\n  \"secondName\": \"eiusmod enim in\",\n  \"age\": -50795472,\n  \"biography\": \"Ut enim commodo fugiat eu\",\n  \"city\": \"Ut fugiat\",\n  \"password\": \"nulla occaecat\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/User/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"User",
+								"register"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"quis\",\n  \"secondName\": \"eiusmod enim in\",\n  \"age\": -50795472,\n  \"biography\": \"Ut enim commodo fugiat eu\",\n  \"city\": \"Ut fugiat\",\n  \"password\": \"nulla occaecat\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/User/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"register"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"userId\": \"98885e27-5317-a3aa-5d08-9aaece92147b\"\n}"
+						},
+						{
+							"name": "Bad Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"quis\",\n  \"secondName\": \"eiusmod enim in\",\n  \"age\": -50795472,\n  \"biography\": \"Ut enim commodo fugiat eu\",\n  \"city\": \"Ut fugiat\",\n  \"password\": \"nulla occaecat\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/User/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"register"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+						},
+						{
+							"name": "Server Error",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"quis\",\n  \"secondName\": \"eiusmod enim in\",\n  \"age\": -50795472,\n  \"biography\": \"Ut enim commodo fugiat eu\",\n  \"city\": \"Ut fugiat\",\n  \"password\": \"nulla occaecat\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/User/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"register"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+						},
+						{
+							"name": "Server Error",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"quis\",\n  \"secondName\": \"eiusmod enim in\",\n  \"age\": -50795472,\n  \"biography\": \"Ut enim commodo fugiat eu\",\n  \"city\": \"Ut fugiat\",\n  \"password\": \"nulla occaecat\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/User/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"register"
+									]
+								}
+							},
+							"status": "Service Unavailable",
+							"code": 503,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+						}
+					]
+				},
+				{
+					"name": "/User/get/:id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "text/plain"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/User/get/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"User",
+								"get",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "urn:uuid:dd5e1436-b02d-04a5-f7d2-c148d4fbc9bc",
+									"description": "(Required) "
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/User/get/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"get",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "urn:uuid:dd5e1436-b02d-04a5-f7d2-c148d4fbc9bc",
+											"description": "(Required) "
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": \"bac971f5-8138-2f8d-dd40-5800731331f9\",\n  \"firstName\": \"eiusmod ex in\",\n  \"secondName\": \"sint sed magna\",\n  \"age\": 21654120,\n  \"biography\": \"culpa Ut pariatur irure ut\",\n  \"city\": \"laboris Excepteur aliqua\"\n}"
+						},
+						{
+							"name": "Bad Request",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/User/get/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"get",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "urn:uuid:dd5e1436-b02d-04a5-f7d2-c148d4fbc9bc",
+											"description": "(Required) "
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+						},
+						{
+							"name": "Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/User/get/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"get",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "urn:uuid:dd5e1436-b02d-04a5-f7d2-c148d4fbc9bc",
+											"description": "(Required) "
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+						},
+						{
+							"name": "Server Error",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/User/get/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"get",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "urn:uuid:dd5e1436-b02d-04a5-f7d2-c148d4fbc9bc",
+											"description": "(Required) "
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+						},
+						{
+							"name": "Server Error",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/User/get/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"User",
+										"get",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "urn:uuid:dd5e1436-b02d-04a5-f7d2-c148d4fbc9bc",
+											"description": "(Required) "
+										}
+									]
+								}
+							},
+							"status": "Service Unavailable",
+							"code": 503,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "/Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": \"ullamco id ut aliquip exercitation\",\n  \"password\": \"ullamco amet nisi in\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/Login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"Login"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"ullamco id ut aliquip exercitation\",\n  \"password\": \"ullamco amet nisi in\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"Login"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"token\": \"pariatur proident commodo veniam\"\n}"
+				},
+				{
+					"name": "Bad Request",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"ullamco id ut aliquip exercitation\",\n  \"password\": \"ullamco amet nisi in\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"Login"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+				},
+				{
+					"name": "Not Found",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"ullamco id ut aliquip exercitation\",\n  \"password\": \"ullamco amet nisi in\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"Login"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+				},
+				{
+					"name": "Server Error",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"ullamco id ut aliquip exercitation\",\n  \"password\": \"ullamco amet nisi in\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"Login"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"message\": \"a\",\n  \"requestId\": \"in\",\n  \"status\": -46288911\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "localhost:5045",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocialNetwork", "SocialNetwork\SocialNetwork.csproj", "{F9C5717D-DBBD-4FFA-AE38-105C554B0D84}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocialNetwork.Domain", "SocialNetwork.Domain\SocialNetwork.Domain.csproj", "{A0961836-5A3E-48E8-BF03-B14BF503866F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocialNetwork.Services", "SocialNetwork.Services\SocialNetwork.Services.csproj", "{D339E56E-015E-4FEB-AF69-66B682DD145F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocialNetwork.Migrations", "SocialNetwork.Migrations\SocialNetwork.Migrations.csproj", "{7EBC5059-91DD-4D5E-9E6B-25730D2F8406}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{4159B016-1D7D-4B14-9674-C5679A49538A}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocialNetwork.DataAccess", "SocialNetwork.DataAccess\SocialNetwork.DataAccess.csproj", "{CCFE819E-78AF-4070-BA0B-D67D3567BE13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocialNetwork.Postgres", "SocialNetwork.Postgres\SocialNetwork.Postgres.csproj", "{F3BFDCA9-6EE9-4631-A1BB-52031EED6813}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F9C5717D-DBBD-4FFA-AE38-105C554B0D84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9C5717D-DBBD-4FFA-AE38-105C554B0D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9C5717D-DBBD-4FFA-AE38-105C554B0D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9C5717D-DBBD-4FFA-AE38-105C554B0D84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0961836-5A3E-48E8-BF03-B14BF503866F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0961836-5A3E-48E8-BF03-B14BF503866F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0961836-5A3E-48E8-BF03-B14BF503866F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0961836-5A3E-48E8-BF03-B14BF503866F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D339E56E-015E-4FEB-AF69-66B682DD145F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D339E56E-015E-4FEB-AF69-66B682DD145F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D339E56E-015E-4FEB-AF69-66B682DD145F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D339E56E-015E-4FEB-AF69-66B682DD145F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EBC5059-91DD-4D5E-9E6B-25730D2F8406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EBC5059-91DD-4D5E-9E6B-25730D2F8406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EBC5059-91DD-4D5E-9E6B-25730D2F8406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EBC5059-91DD-4D5E-9E6B-25730D2F8406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCFE819E-78AF-4070-BA0B-D67D3567BE13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCFE819E-78AF-4070-BA0B-D67D3567BE13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCFE819E-78AF-4070-BA0B-D67D3567BE13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCFE819E-78AF-4070-BA0B-D67D3567BE13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3BFDCA9-6EE9-4631-A1BB-52031EED6813}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3BFDCA9-6EE9-4631-A1BB-52031EED6813}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3BFDCA9-6EE9-4631-A1BB-52031EED6813}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3BFDCA9-6EE9-4631-A1BB-52031EED6813}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
