@@ -13,9 +13,9 @@ public sealed class User : Entity<Guid>, IAggregateRoot
     public Biography Biography { get; }
     public IReadOnlyCollection<Guid> FriendIds { get; } = new List<Guid>();
     public IReadOnlyCollection<Guid> PostsIds { get; } = new List<Guid>();
-    public Password Password { get; }
+    public Password? Password { get; }
 
-    public User(Name firstName, Name lastName, Age age, Biography biography, City city, Password password)
+    public User(Name firstName, Name lastName, Age age, Biography biography, City city, Password? password)
     {
         City = city;
         FirstName = firstName;
@@ -25,7 +25,7 @@ public sealed class User : Entity<Guid>, IAggregateRoot
         Password = password;
     }
     
-    public User(Guid id, Name firstName, Name lastName, Age age, Biography biography, City city, Password password) 
+    public User(Guid id, Name firstName, Name lastName, Age age, Biography biography, City city, Password? password = null) 
         : this(firstName, lastName, age, biography, city, password) 
     {
         Id = id;

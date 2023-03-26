@@ -3,6 +3,7 @@ using SocialNetwork.Domain.Users;
 using SocialNetwork.Domain.Users.Repositories;
 using SocialNetwork.DataAccess.DbDto;
 using SocialNetwork.DataAccess.Exceptions;
+using SocialNetwork.Domain.Users.ValueObjects;
 
 namespace SocialNetwork.DataAccess.Repositories;
 
@@ -64,7 +65,7 @@ RETURNING "Id"
         return id;
     }
 
-    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<User> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var sql = $"""
 SELECT 
@@ -112,5 +113,66 @@ WHERE
             new(dto.Biography), 
             new(dto.CityId, dto.CityName),
             new(dto.Password, dto.Salt));
+    }
+
+    public async Task<IReadOnlyCollection<User>> GetByFilterAsync(UserFilter filter, CancellationToken cancellationToken)
+    {
+        var filterDbDto = new UserFilterDbDto()
+        {
+            SecondName = $"{filter.SecondName ?? ""}%",
+            FirstName = $"{filter.FirstName ?? ""}%",
+        };
+
+        var conditions = new List<string>();
+        if (filter.FirstName is not null)
+            conditions.Add($"""u."FirstName" ILIKE @{nameof(filterDbDto.FirstName)}""");
+        if (filter.SecondName is not null)
+            conditions.Add($"""u."SecondName" ILIKE @{nameof(filterDbDto.SecondName)}""");
+        var queryCondition = string.Join(" AND ", conditions);
+
+        var sql = $"""
+SELECT
+    u."Id", 
+    u."FirstName", 
+    u."SecondName", 
+    u."Age", 
+    u."Biography", 
+    c."Name",
+    c."Id"
+FROM
+    "{UsersTableName}" u JOIN "{CitiesTableName}" c ON u."CityId" = c."Id"
+WHERE
+    {queryCondition}
+""";
+
+        var connection = _source.CreateConnection();
+        var query = new NpgsqlCommand(sql, connection);
+        query.Parameters.AddWithValue(nameof(filterDbDto.FirstName), filterDbDto.FirstName);
+        query.Parameters.AddWithValue(nameof(filterDbDto.SecondName), filterDbDto.SecondName);
+        
+        await connection.OpenAsync(cancellationToken);
+        await using var reader = await query.ExecuteReaderAsync(cancellationToken);
+
+        var users = new List<UserDbDto>();
+        while (!await reader.ReadAsync(cancellationToken))
+            users.Add(new()
+            {
+                Id = reader.GetGuid(0),
+                FirstName = reader.GetString(1),
+                SecondName = reader.GetString(2),
+                Age = reader.GetInt32(3),
+                Biography = reader.GetString(4),
+                CityName = reader.GetString(5),
+                CityId = reader.GetGuid(6)
+            });
+
+        return users.Select(x => new User(
+                x.Id,
+                new(x.FirstName),
+                new(x.SecondName),
+                new(x.Age),
+                new(x.Biography),
+                new(x.CityId, x.CityName)))
+            .ToList();
     }
 }
