@@ -119,11 +119,11 @@ WHERE
     {
         var filterDbDto = new UserFilterDbDto()
         {
-            SecondName = $"{filter.SecondName ?? ""}%",
-            FirstName = $"{filter.FirstName ?? ""}%",
+            SecondName = $"{filter.SecondName ?? ""}",
+            FirstName = $"{filter.FirstName ?? ""}",
         };
 
-        var conditions = new List<string>();
+        var conditions = new List<string>() {"TRUE"};
         if (filter.FirstName is not null)
             conditions.Add($"""u."FirstName" ILIKE @{nameof(filterDbDto.FirstName)}""");
         if (filter.SecondName is not null)
@@ -154,7 +154,7 @@ WHERE
         await using var reader = await query.ExecuteReaderAsync(cancellationToken);
 
         var users = new List<UserDbDto>();
-        while (!await reader.ReadAsync(cancellationToken))
+        while (await reader.ReadAsync(cancellationToken))
             users.Add(new()
             {
                 Id = reader.GetGuid(0),
