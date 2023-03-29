@@ -143,6 +143,8 @@ FROM
     "{UsersTableName}" u JOIN "{CitiesTableName}" c ON u."CityId" = c."Id"
 WHERE
     {queryCondition}
+ORDER BY 
+    u."Id" ASC 
 """;
 
         var connection = _source.CreateConnection();
