@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: "SocialNetwork/Dockerfile"
+      target: migrate
