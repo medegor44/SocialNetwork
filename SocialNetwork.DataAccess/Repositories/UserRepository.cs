@@ -44,7 +44,7 @@ VALUES (
         @{nameof(UserDbDto.Salt)})
 RETURNING "Id"
 """;
-        var connection = _source.CreateConnection();
+        await using var connection = _source.CreateConnection();
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue(nameof(dto.FirstName), dto.FirstName);
         command.Parameters.AddWithValue(nameof(dto.SecondName), dto.SecondName);
@@ -80,7 +80,7 @@ FROM
 WHERE
     u."Id" = @{nameof(UserDbDto.Id)}
 """;
-        var connection = _source.CreateConnection();
+        await using var connection = _source.CreateConnection();
         await using var query = new NpgsqlCommand(sql, connection);
         query.Parameters.AddWithValue(nameof(UserDbDto.Id), id);
 
@@ -149,7 +149,7 @@ ORDER BY
 LIMIT @{nameof(UserFilterDbDto.Limit)}
 """;
 
-        var connection = _source.CreateConnection();
+        await using var connection = _source.CreateConnection();
         var query = new NpgsqlCommand(sql, connection);
         query.Parameters.AddWithValue(nameof(filterDbDto.FirstName), filterDbDto.FirstName);
         query.Parameters.AddWithValue(nameof(filterDbDto.SecondName), filterDbDto.SecondName);
@@ -159,7 +159,7 @@ LIMIT @{nameof(UserFilterDbDto.Limit)}
         await connection.OpenAsync(cancellationToken);
         await using var reader = await query.ExecuteReaderAsync(cancellationToken);
 
-        var users = new List<UserDbDto>();
+        var users = new List<UserDbDto>(filterDbDto.Limit);
         while (await reader.ReadAsync(cancellationToken))
             users.Add(new()
             {

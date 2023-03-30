@@ -27,7 +27,7 @@ WHERE
     "Id" = @{nameof(DictionaryItemDbDto.Id)}
 """;
 
-        var connection = _dataSource.CreateConnection();
+        await using var connection = _dataSource.CreateConnection();
         await using var query = new NpgsqlCommand(sql, connection);
 
         query.Parameters.AddWithValue(nameof(DictionaryItemDbDto.Id), id);
@@ -58,7 +58,7 @@ WHERE
     "Name" ILIKE @{nameof(DictionaryItemDbDto.Name)}
 """;
 
-        var connection = _dataSource.CreateConnection();
+        await using var connection = _dataSource.CreateConnection();
         await using var query = new NpgsqlCommand(sql, connection);
 
         query.Parameters.AddWithValue(nameof(DictionaryItemDbDto.Name), name);
