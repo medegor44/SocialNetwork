@@ -13,7 +13,6 @@ public static class Migrator
         return collection
             .AddFluentMigratorCore()
             .ConfigureRunner(builder => builder
-                .WithGlobalCommandTimeout(TimeSpan.MaxValue)
                 .WithGlobalConnectionString(provider => provider.GetRequiredService<DbConnectionStringBuilder>().ToString())
                 .AddPostgres()
                 .ScanIn(typeof(CreateUsers).Assembly).For.Migrations())
