@@ -2,9 +2,9 @@
 
 namespace SocialNetwork.Domain.Users.Entities;
 
-public class City : Entity<Guid>
+public class City : Entity<long>
 {
-    public City(Guid id, string name)
+    public City(long id, string name)
     {
         Id = id;
         Name = name;

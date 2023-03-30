@@ -18,11 +18,10 @@ public class UserRepository : IUserRepository
         _source = source;
     }
     
-    public async Task<Guid> CreateAsync(User user, CancellationToken cancellationToken)
+    public async Task<long> CreateAsync(User user, CancellationToken cancellationToken)
     {
         var dto = new UserDbDto
         {
-            Id = Guid.NewGuid(),
             Age = user.Age.Value,
             Biography = user.Biography.Value,
             CityId = user.City.Id,
@@ -34,9 +33,8 @@ public class UserRepository : IUserRepository
         };
         
         var sql = $"""
-INSERT INTO "{UsersTableName}" ("Id", "FirstName", "SecondName", "Age", "Biography", "CityId", "Password", "Salt") 
+INSERT INTO "{UsersTableName}" ("FirstName", "SecondName", "Age", "Biography", "CityId", "Password", "Salt") 
 VALUES (
-        @{nameof(UserDbDto.Id)},
         @{nameof(UserDbDto.FirstName)}, 
         @{nameof(UserDbDto.SecondName)}, 
         @{nameof(UserDbDto.Age)}, 
@@ -48,7 +46,6 @@ RETURNING "Id"
 """;
         var connection = _source.CreateConnection();
         await using var command = new NpgsqlCommand(sql, connection);
-        command.Parameters.AddWithValue(nameof(dto.Id), dto.Id);
         command.Parameters.AddWithValue(nameof(dto.FirstName), dto.FirstName);
         command.Parameters.AddWithValue(nameof(dto.SecondName), dto.SecondName);
         command.Parameters.AddWithValue(nameof(dto.Age), dto.Age);
@@ -59,13 +56,13 @@ RETURNING "Id"
 
         await connection.OpenAsync(cancellationToken);
 
-        if (await command.ExecuteScalarAsync(cancellationToken) is not Guid id)
+        if (await command.ExecuteScalarAsync(cancellationToken) is not long id)
             throw new InfrastructureException("Couldn't create user");
         
         return id;
     }
 
-    public async Task<User> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
         var sql = $"""
 SELECT 
@@ -94,12 +91,12 @@ WHERE
 
         var dto = new UserDbDto
         {
-            Id = reader.GetGuid(0),
+            Id = reader.GetInt64(0),
             FirstName = reader.GetString(1),
             SecondName = reader.GetString(2),
             Age = reader.GetInt32(3),
             Biography = reader.GetString(4),
-            CityId = reader.GetGuid(5),
+            CityId = reader.GetInt64(5),
             Password = reader.GetString(6),
             Salt = reader.GetString(7),
             CityName = reader.GetString(8)
@@ -119,8 +116,10 @@ WHERE
     {
         var filterDbDto = new UserFilterDbDto()
         {
-            SecondName = $"{filter.SecondName ?? ""}",
-            FirstName = $"{filter.FirstName ?? ""}",
+            SecondName = $"{filter.SecondName ?? ""}%",
+            FirstName = $"{filter.FirstName ?? ""}%",
+            Limit = filter.Pagination.Limit,
+            Offset = filter.Pagination.Offset
         };
 
         var conditions = new List<string>() {"TRUE"};
@@ -128,6 +127,8 @@ WHERE
             conditions.Add($"""u."FirstName" ILIKE @{nameof(filterDbDto.FirstName)}""");
         if (filter.SecondName is not null)
             conditions.Add($"""u."SecondName" ILIKE @{nameof(filterDbDto.SecondName)}""");
+        conditions.Add($"""u."Id" >= @{nameof(filterDbDto.Offset)} """);
+        
         var queryCondition = string.Join(" AND ", conditions);
 
         var sql = $"""
@@ -145,12 +146,15 @@ WHERE
     {queryCondition}
 ORDER BY 
     u."Id" ASC 
+LIMIT @{nameof(UserFilterDbDto.Limit)}
 """;
 
         var connection = _source.CreateConnection();
         var query = new NpgsqlCommand(sql, connection);
         query.Parameters.AddWithValue(nameof(filterDbDto.FirstName), filterDbDto.FirstName);
         query.Parameters.AddWithValue(nameof(filterDbDto.SecondName), filterDbDto.SecondName);
+        query.Parameters.AddWithValue(nameof(filterDbDto.Limit), filterDbDto.Limit);
+        query.Parameters.AddWithValue(nameof(filterDbDto.Offset), filterDbDto.Offset);
         
         await connection.OpenAsync(cancellationToken);
         await using var reader = await query.ExecuteReaderAsync(cancellationToken);
@@ -159,13 +163,13 @@ ORDER BY
         while (await reader.ReadAsync(cancellationToken))
             users.Add(new()
             {
-                Id = reader.GetGuid(0),
+                Id = reader.GetInt64(0),
                 FirstName = reader.GetString(1),
                 SecondName = reader.GetString(2),
                 Age = reader.GetInt32(3),
                 Biography = reader.GetString(4),
                 CityName = reader.GetString(5),
-                CityId = reader.GetGuid(6)
+                CityId = reader.GetInt64(6)
             });
 
         return users.Select(x => new User(

@@ -1,5 +1,5 @@
 ﻿namespace SocialNetwork.Controllers.Requests;
 
 public record LoginRequest(
-    string Id, 
+    long Id, 
     string Password);

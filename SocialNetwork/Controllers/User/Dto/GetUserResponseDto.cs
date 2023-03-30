@@ -1,7 +1,7 @@
 ﻿namespace SocialNetwork.Controllers.Requests;
 
 public record GetUserResponseDto(
-    Guid Id, 
+    long Id, 
     string FirstName, 
     string SecondName, 
     int Age, 

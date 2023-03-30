@@ -2,4 +2,4 @@
 
 namespace SocialNetwork.Services.Queries.GetUserByIdQuery;
 
-public record GetUserByIdQuery(Guid Id) : IRequest<GetUserByIdQueryResponse>;
+public record GetUserByIdQuery(long Id) : IRequest<GetUserByIdQueryResponse>;

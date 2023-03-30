@@ -39,7 +39,7 @@ WHERE
 
         var dto = new DictionaryItemDbDto()
         {
-            Id = reader.GetGuid(0),
+            Id = reader.GetInt64(0),
             Name = reader.GetString(1)
         };
 
@@ -70,7 +70,7 @@ WHERE
         while (await reader.ReadAsync(cancellationToken))
             dtos.Add(new DictionaryItemDbDto()
             {
-                Id = reader.GetGuid(0),
+                Id = reader.GetInt64(0),
                 Name = reader.GetString(1)
             });
 

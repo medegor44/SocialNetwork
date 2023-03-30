@@ -2,9 +2,9 @@
 
 namespace SocialNetwork.Domain.Dictionaries.Entities;
 
-public sealed class DictionaryItem : Entity<Guid>
+public sealed class DictionaryItem : Entity<long>
 {
-    public DictionaryItem(Guid id, string name)
+    public DictionaryItem(long id, string name)
     {
         Id = id;
         Name = name;

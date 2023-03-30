@@ -4,15 +4,15 @@ using SocialNetwork.Domain.Users.ValueObjects;
 
 namespace SocialNetwork.Domain.Users;
 
-public sealed class User : Entity<Guid>, IAggregateRoot
+public sealed class User : Entity<long>, IAggregateRoot
 {
     public City City { get; }
     public Name FirstName { get; }
     public Name LastName { get; }
     public Age Age { get; }
     public Biography Biography { get; }
-    public IReadOnlyCollection<Guid> FriendIds { get; } = new List<Guid>();
-    public IReadOnlyCollection<Guid> PostsIds { get; } = new List<Guid>();
+    public IReadOnlyCollection<long> FriendIds { get; } = new List<long>();
+    public IReadOnlyCollection<long> PostsIds { get; } = new List<long>();
     public Password? Password { get; }
 
     public User(Name firstName, Name lastName, Age age, Biography biography, City city, Password? password)
@@ -25,34 +25,34 @@ public sealed class User : Entity<Guid>, IAggregateRoot
         Password = password;
     }
     
-    public User(Guid id, Name firstName, Name lastName, Age age, Biography biography, City city, Password? password = null) 
+    public User(long id, Name firstName, Name lastName, Age age, Biography biography, City city, Password? password = null) 
         : this(firstName, lastName, age, biography, city, password) 
     {
         Id = id;
     }
 
     public User(
-        Guid id, 
+        long id, 
         Name firstName, 
         Name lastName, 
         Age age, 
         Biography biography, 
         City city, Password password,
-        IReadOnlyCollection<Guid> friendIds)
+        IReadOnlyCollection<long> friendIds)
         : this(id, firstName, lastName, age, biography, city, password)
     {
         FriendIds = friendIds;
     }
 
     public User(
-        Guid id, 
+        long id, 
         Name firstName, 
         Name lastName, 
         Age age, 
         Biography biography, 
         City city, Password password,
-        IReadOnlyCollection<Guid> friendIds, 
-        IReadOnlyCollection<Guid> postsIdsIds)
+        IReadOnlyCollection<long> friendIds, 
+        IReadOnlyCollection<long> postsIdsIds)
         : this(id, firstName, lastName, age, biography, city, password, friendIds)
     {
         PostsIds = postsIdsIds;

@@ -18,12 +18,12 @@ public class SeedCities : Migration
         var values = new List<string>();
         
         while (!reader.EndOfStream)
-            values.Add($"('{Guid.NewGuid()}', '{reader.ReadLine()}')");
+            values.Add($"('{reader.ReadLine()}')");
 
         var insert = string.Join(",", values);
         
         var sql = $"""
-INSERT INTO "Cities"("Id", "Name") VALUES
+INSERT INTO "Cities"("Name") VALUES
 {insert}
 """;
         
