@@ -116,17 +116,17 @@ WHERE
     {
         var filterDbDto = new UserFilterDbDto()
         {
-            SecondName = $"{filter.SecondName ?? ""}%",
-            FirstName = $"{filter.FirstName ?? ""}%",
+            SecondName = $"{filter.SecondName?.ToLower() ?? ""}%",
+            FirstName = $"{filter.FirstName?.ToLower() ?? ""}%",
             Limit = filter.Pagination.Limit,
             Offset = filter.Pagination.Offset
         };
 
         var conditions = new List<string>() {"TRUE"};
         if (filter.FirstName is not null)
-            conditions.Add($"""u."FirstName" ILIKE @{nameof(filterDbDto.FirstName)}""");
+            conditions.Add($"""LOWER(u."FirstName") LIKE @{nameof(filterDbDto.FirstName)}""");
         if (filter.SecondName is not null)
-            conditions.Add($"""u."SecondName" ILIKE @{nameof(filterDbDto.SecondName)}""");
+            conditions.Add($"""LOWER(u."SecondName") LIKE @{nameof(filterDbDto.SecondName)}""");
         conditions.Add($"""u."Id" >= @{nameof(filterDbDto.Offset)} """);
         
         var queryCondition = string.Join(" AND ", conditions);
