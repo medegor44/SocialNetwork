@@ -1,0 +1,28 @@
+{
+  "name": "loadtesting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bundle": "webpack",
+    "shot-local": "npm run bundle && npm run shot-local:k6",
+    "shot-local:k6": "k6 run dist/index.bundle.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
+    "babel-loader": "^9.1.2",
+    "core-js": "^3.29.1",
+    "cross-env": "^7.0.3",
+    "k6": "^0.0.0",
+    "querystringify": "^2.2.0",
+    "webpack": "^5.77.0",
+    "webpack-cli": "^5.0.1"
+  },
+  "dependencies": {
+    "russian_name": "^2.0.1"
+  }
+}

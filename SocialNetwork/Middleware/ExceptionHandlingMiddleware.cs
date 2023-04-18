@@ -3,10 +3,12 @@
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -15,8 +17,11 @@ public class ExceptionHandlingMiddleware
         {
             await _next.Invoke(context);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogError(e.Message);
+            _logger.LogError(e.StackTrace);
+            
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.Headers.RetryAfter = 120.ToString();
 

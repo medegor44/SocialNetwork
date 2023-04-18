@@ -1,3 +1,3 @@
 ﻿namespace SocialNetwork.Controllers.Requests;
 
-public record RegisterSuccessfulResponseDto(Guid UserId);
+public record RegisterSuccessfulResponseDto(long UserId);

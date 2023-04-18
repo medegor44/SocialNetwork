@@ -27,7 +27,7 @@ WHERE
     "Id" = @{nameof(DictionaryItemDbDto.Id)}
 """;
 
-        var connection = _dataSource.CreateConnection();
+        await using var connection = _dataSource.CreateConnection();
         await using var query = new NpgsqlCommand(sql, connection);
 
         query.Parameters.AddWithValue(nameof(DictionaryItemDbDto.Id), id);
@@ -39,7 +39,7 @@ WHERE
 
         var dto = new DictionaryItemDbDto()
         {
-            Id = reader.GetGuid(0),
+            Id = reader.GetInt64(0),
             Name = reader.GetString(1)
         };
 
@@ -58,7 +58,7 @@ WHERE
     "Name" ILIKE @{nameof(DictionaryItemDbDto.Name)}
 """;
 
-        var connection = _dataSource.CreateConnection();
+        await using var connection = _dataSource.CreateConnection();
         await using var query = new NpgsqlCommand(sql, connection);
 
         query.Parameters.AddWithValue(nameof(DictionaryItemDbDto.Name), name);
@@ -70,7 +70,7 @@ WHERE
         while (await reader.ReadAsync(cancellationToken))
             dtos.Add(new DictionaryItemDbDto()
             {
-                Id = reader.GetGuid(0),
+                Id = reader.GetInt64(0),
                 Name = reader.GetString(1)
             });
 

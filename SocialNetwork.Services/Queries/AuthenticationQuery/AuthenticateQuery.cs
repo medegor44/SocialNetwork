@@ -2,4 +2,4 @@
 
 namespace SocialNetwork.Services.Queries.AuthenticationQuery;
 
-public record AuthenticateQuery(Guid Id, string RawPassword) : IRequest<AuthenticateQueryResponse>;
+public record AuthenticateQuery(long Id, string RawPassword) : IRequest<AuthenticateQueryResponse>;

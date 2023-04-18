@@ -1,3 +1,3 @@
 ﻿namespace SocialNetwork.Services.Commands.CreateUserCommand;
 
-public record CreateUserCommandResponse(Guid Id);
+public record CreateUserCommandResponse(long Id);

@@ -1,0 +1,7 @@
+{
+  "stages": [
+    { "duration": "10s", "target": 1 },
+    { "duration": "10s", "target": 10 }
+  ],
+  "myHost": "http://1.1.1.1"
+}

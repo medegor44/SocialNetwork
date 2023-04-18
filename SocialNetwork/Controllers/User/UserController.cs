@@ -43,14 +43,14 @@ public class UserController : Controller
         return Results.Ok(new RegisterSuccessfulResponseDto(response.Id));
     }
 
-    [HttpGet("get/{id:guid}")]
+    [HttpGet("get/{id:long}")]
     [ProducesResponseType(typeof(GetUserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IResult> GetById(
-        [FromRoute] Guid id, 
+        [FromRoute] long id, 
         [FromServices] IRequestHandler<GetUserByIdQuery, GetUserByIdQueryResponse> handler,
         CancellationToken cancellationToken)
     {
@@ -72,5 +72,31 @@ public class UserController : Controller
             response.UserDto.Biography,
             response.UserDto.City
         ));
+    }
+
+    [HttpGet("get")]
+    [ProducesResponseType(typeof(List<GetUserResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IResult> GetByNames(
+        [FromQuery] string? firstName, 
+        [FromQuery] string? secondName, 
+        [FromQuery] int limit,
+        [FromQuery] int? offset,
+        CancellationToken cancellationToken,
+        [FromServices] IRequestHandler<GetUserByFilterQuery, GetUserByFilterQueryResponse> handler)
+    {
+        var response = await handler.HandleAsync(new(firstName, secondName, limit, offset ?? 0), cancellationToken);
+
+        return Results.Ok(response.Users.Select(user => new GetUserResponseDto(
+            user.Id,
+            user.FirstName,
+            user.SecondName,
+            user.Age,
+            user.Biography,
+            user.City
+        )).ToList());
     }
 }

@@ -28,7 +28,7 @@ public class LoginController : Controller
         try
         {
             authResponse = await handler.HandleAsync(
-                new(Guid.Parse(request.Id), request.Password),
+                new(request.Id, request.Password),
                 cancellationToken);
         }
         catch (NotFoundException e)
@@ -45,7 +45,7 @@ public class LoginController : Controller
 
         var claims = new List<Claim>
         {
-            new(ClaimTypes.Name, request.Id)
+            new(ClaimTypes.Name, request.Id.ToString())
         };
 
         var token = new JwtSecurityToken(

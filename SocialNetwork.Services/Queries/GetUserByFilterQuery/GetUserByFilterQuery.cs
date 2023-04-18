@@ -2,4 +2,8 @@
 
 namespace SocialNetwork.Services.Queries.GetUserByFilterQuery;
 
-public record GetUserByFilterQuery(string FirstName, string SecondName) : IRequest<GetUserByFilterQueryResponse>;
+public record GetUserByFilterQuery(
+    string FirstName, 
+    string SecondName,
+    int Limit,
+    int Offset) : IRequest<GetUserByFilterQueryResponse>;
