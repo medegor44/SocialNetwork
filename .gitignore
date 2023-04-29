@@ -426,3 +426,6 @@ LoadTesting/package-lock.json
 LoadTesting/config.local.json
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+.vscode
+.idea
