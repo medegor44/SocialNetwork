@@ -112,6 +112,11 @@ WHERE
             new(dto.Password, dto.Salt));
     }
 
+    public Task<IReadOnlyCollection<User>> GetByIdsAsync(IReadOnlyCollection<long> ids, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<IReadOnlyCollection<User>> GetByFilterAsync(UserFilter filter, CancellationToken cancellationToken)
     {
         var filterDbDto = new UserFilterDbDto()
@@ -180,5 +185,10 @@ LIMIT @{nameof(UserFilterDbDto.Limit)}
                 new(x.Biography),
                 new(x.CityId, x.CityName)))
             .ToList();
+    }
+
+    public Task UpdateAsync(User oldUser, User updatedUser, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }

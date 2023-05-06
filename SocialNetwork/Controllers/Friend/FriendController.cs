@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using SocialNetwork.Controllers.Auth;
 using SocialNetwork.Controllers.Common;
+using SocialNetwork.Services.Abstractions;
+using SocialNetwork.Services.Commands.CreateFriendsCommand;
+using SocialNetwork.Services.Commands.RemoveFriendsCommand;
 
 namespace SocialNetwork.Controllers.Friend;
 
@@ -20,13 +23,20 @@ public class FriendController : Controller
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status503ServiceUnavailable)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status400BadRequest)]
     [Authorize]
-    public Task<IResult> AddFriend([FromRoute] long friendId, [FromServices] IClaimsStore store)
+    public async Task<IResult> AddFriendAsync(
+        [FromRoute] long friendId, 
+        [FromServices] IClaimsStore store,
+        [FromServices] IRequestHandler<CreateFriendsCommand> handler,
+        CancellationToken cancellationToken)
     {
         var userId = store.FromClaims(HttpContext.User.Claims).GetUserId();
-        
-        _logger.LogInformation($"{userId} is friend to {friendId}");
-        
-        return Task.FromResult(Results.Ok());
+
+        await handler.HandleAsync(new(userId, new List<long>()
+        {
+            friendId
+        }), cancellationToken);
+
+        return Results.Ok();
     }
     
     [HttpPut("delete/{friendId:long}")]
@@ -34,12 +44,19 @@ public class FriendController : Controller
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status503ServiceUnavailable)]
     [ProducesResponseType(typeof(ActionFailedResponse), StatusCodes.Status400BadRequest)]
     [Authorize]
-    public Task<IResult> RemoveFriend([FromRoute] long friendId, [FromServices] IClaimsStore store)
+    public async Task<IResult> RemoveFriend(
+        [FromRoute] long friendId, 
+        [FromServices] IClaimsStore store,
+        [FromServices] IRequestHandler<RemoveFriendsCommand> handler,
+        CancellationToken cancellationToken)
     {
         var userId = store.FromClaims(HttpContext.User.Claims).GetUserId();
         
-        _logger.LogInformation($"{userId} now is not friend to {friendId}");
+        await handler.HandleAsync(new(userId, new List<long>()
+        {
+            friendId
+        }), cancellationToken);
         
-        return Task.FromResult(Results.Ok());
+        return Results.Ok();
     }
 }

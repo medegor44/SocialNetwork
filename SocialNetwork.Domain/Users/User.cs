@@ -37,7 +37,8 @@ public sealed class User : Entity<long>, IAggregateRoot
         Name lastName, 
         Age age, 
         Biography biography, 
-        City city, Password password,
+        City city, 
+        Password? password,
         IReadOnlyCollection<long> friendIds)
         : this(id, firstName, lastName, age, biography, city, password)
     {
@@ -50,7 +51,8 @@ public sealed class User : Entity<long>, IAggregateRoot
         Name lastName, 
         Age age, 
         Biography biography, 
-        City city, Password password,
+        City city, 
+        Password? password,
         IReadOnlyCollection<long> friendIds, 
         IReadOnlyCollection<long> postsIdsIds)
         : this(id, firstName, lastName, age, biography, city, password, friendIds)

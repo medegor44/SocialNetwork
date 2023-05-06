@@ -3,12 +3,12 @@ using SocialNetwork.Domain.Posts.ValueObjects;
 
 namespace SocialNetwork.Domain.Posts;
 
-public sealed class Post : Entity<Guid>, IAggregateRoot
+public sealed class Post : Entity<long>, IAggregateRoot
 {
     public Text Text { get; }
-    public Guid UserId { get; }
+    public long UserId { get; }
     
-    public Post(Guid id, Text text, Guid userId)
+    public Post(long id, Text text, long userId)
     {
         Id = id;
         Text = text;
