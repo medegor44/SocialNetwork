@@ -12,6 +12,8 @@ public class UserRepository : IUserRepository
     private readonly NpgsqlDataSource _source;
     private const string UsersTableName = "Users";
     private const string CitiesTableName = "Cities";
+    private const string FriendsTableName = "Friends";
+    private const string PostsTableName = "Posts";
 
     public UserRepository(NpgsqlDataSource source)
     {
@@ -64,6 +66,80 @@ RETURNING "Id"
 
     public async Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
+        var dto = await GetUserDtoByIdAsync(id, cancellationToken);
+
+        if (dto is null)
+            return null;
+
+        var friends = await GetFriendsByUserIdAsync(id, cancellationToken);
+        var posts = await GetPostsByUserIdAsync(id, cancellationToken);
+
+        return new User(
+            dto.Id, 
+            new(dto.FirstName ?? string.Empty), 
+            new(dto.SecondName ?? string.Empty), 
+            new(dto.Age), 
+            new(dto.Biography ?? string.Empty), 
+            new(dto.CityId, dto.CityName ?? string.Empty),
+            new(dto.Password ?? string.Empty, dto.Salt ?? string.Empty),
+            friends,
+            posts);
+    }
+
+    private async Task<List<long>> GetPostsByUserIdAsync(long userId, CancellationToken cancellationToken)
+    {
+        var sql = $"""
+SELECT
+    "Id"
+FROM
+    "{PostsTableName}"
+WHERE
+    "UserId" = @Id
+""";
+        
+        await using var connection = _source.CreateConnection();
+        await using var query = new NpgsqlCommand(sql, connection);
+        query.Parameters.AddWithValue("Id", userId);
+        
+        await connection.OpenAsync(cancellationToken);
+        await using var reader = await query.ExecuteReaderAsync(cancellationToken);
+
+        var posts = new List<long>();
+        
+        while (await reader.ReadAsync(cancellationToken))
+            posts.Add(reader.GetInt64(0));
+
+        return posts;
+    }
+    
+    private async Task<List<long>> GetFriendsByUserIdAsync(long userId, CancellationToken cancellationToken)
+    {
+        var sql = $"""
+SELECT
+    "FriendId"
+FROM
+    "{FriendsTableName}"
+WHERE
+    "UserId" = @Id
+""";
+
+        await using var connection = _source.CreateConnection();
+        await using var query = new NpgsqlCommand(sql, connection);
+        query.Parameters.AddWithValue("Id", userId);
+        
+        await connection.OpenAsync(cancellationToken);
+        await using var reader = await query.ExecuteReaderAsync(cancellationToken);
+
+        var friends = new List<long>();
+        
+        while (await reader.ReadAsync(cancellationToken))
+            friends.Add(reader.GetInt64(0));
+
+        return friends;
+    }
+
+    private async Task<UserDbDto?> GetUserDtoByIdAsync(long id, CancellationToken cancellationToken)
+    {
         var sql = $"""
 SELECT 
     u."Id", 
@@ -76,7 +152,8 @@ SELECT
     u."Salt",
     c."Name" 
 FROM
-    "{UsersTableName}" u JOIN "{CitiesTableName}" c ON u."CityId" = c."Id"
+    "{UsersTableName}" u 
+    JOIN "{CitiesTableName}" c ON u."CityId" = c."Id"
 WHERE
     u."Id" = @{nameof(UserDbDto.Id)}
 """;
@@ -101,20 +178,7 @@ WHERE
             Salt = reader.GetString(7),
             CityName = reader.GetString(8)
         };
-
-        return new User(
-            dto.Id, 
-            new(dto.FirstName), 
-            new(dto.SecondName), 
-            new(dto.Age), 
-            new(dto.Biography), 
-            new(dto.CityId, dto.CityName),
-            new(dto.Password, dto.Salt));
-    }
-
-    public Task<IReadOnlyCollection<User>> GetByIdsAsync(IReadOnlyCollection<long> ids, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
+        return dto;
     }
 
     public async Task<IReadOnlyCollection<User>> GetByFilterAsync(UserFilter filter, CancellationToken cancellationToken)
@@ -127,7 +191,7 @@ WHERE
             Offset = filter.Pagination.Offset
         };
 
-        var conditions = new List<string>() {"TRUE"};
+        var conditions = new List<string> {"TRUE"};
         if (filter.FirstName is not null)
             conditions.Add($"""LOWER(u."FirstName") LIKE @{nameof(filterDbDto.FirstName)}""");
         if (filter.SecondName is not null)
@@ -185,10 +249,5 @@ LIMIT @{nameof(UserFilterDbDto.Limit)}
                 new(x.Biography),
                 new(x.CityId, x.CityName)))
             .ToList();
-    }
-
-    public Task UpdateAsync(User oldUser, User updatedUser, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
     }
 }
