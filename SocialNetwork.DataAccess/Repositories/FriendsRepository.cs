@@ -129,6 +129,13 @@ WHERE
         try
         {
             await CreateFriendAsync(recentlyAddedFriends, updatedUser.Id, connection, cancellationToken);
+            await RemoveFriendsAsync(recentlyRemovedFriends, updatedUser.Id, connection, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
         }
     }
 }

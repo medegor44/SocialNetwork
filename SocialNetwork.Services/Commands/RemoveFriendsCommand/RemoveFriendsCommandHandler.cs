@@ -16,7 +16,7 @@ public class RemoveFriendsCommandHandler : IRequestHandler<RemoveFriendsCommand>
     
     public async Task HandleAsync(RemoveFriendsCommand request, CancellationToken cancellationToken)
     {
-        var user = await _friendsRepository.GetUsersByIdsAsync(request.UserId, cancellationToken);
+        var user = await _friendsRepository.GetUserByIdAsync(request.UserId, cancellationToken);
         if (user is null)
             throw new NotFoundException(nameof(User), request.UserId.ToString());
 
