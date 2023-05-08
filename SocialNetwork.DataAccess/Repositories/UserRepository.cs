@@ -12,8 +12,6 @@ public class UserRepository : IUserRepository
     private readonly NpgsqlDataSource _source;
     private const string UsersTableName = "Users";
     private const string CitiesTableName = "Cities";
-    private const string FriendsTableName = "Friends";
-    private const string PostsTableName = "Posts";
 
     public UserRepository(NpgsqlDataSource source)
     {
@@ -71,9 +69,6 @@ RETURNING "Id"
         if (dto is null)
             return null;
 
-        var friends = await GetFriendsByUserIdAsync(id, cancellationToken);
-        var posts = await GetPostsByUserIdAsync(id, cancellationToken);
-
         return new User(
             dto.Id, 
             new(dto.FirstName ?? string.Empty), 
@@ -81,61 +76,7 @@ RETURNING "Id"
             new(dto.Age), 
             new(dto.Biography ?? string.Empty), 
             new(dto.CityId, dto.CityName ?? string.Empty),
-            new(dto.Password ?? string.Empty, dto.Salt ?? string.Empty),
-            friends,
-            posts);
-    }
-
-    private async Task<List<long>> GetPostsByUserIdAsync(long userId, CancellationToken cancellationToken)
-    {
-        var sql = $"""
-SELECT
-    "Id"
-FROM
-    "{PostsTableName}"
-WHERE
-    "UserId" = @Id
-""";
-        
-        await using var connection = _source.CreateConnection();
-        await using var query = new NpgsqlCommand(sql, connection);
-        query.Parameters.AddWithValue("Id", userId);
-        
-        await connection.OpenAsync(cancellationToken);
-        await using var reader = await query.ExecuteReaderAsync(cancellationToken);
-
-        var posts = new List<long>();
-        
-        while (await reader.ReadAsync(cancellationToken))
-            posts.Add(reader.GetInt64(0));
-
-        return posts;
-    }
-    
-    private async Task<List<long>> GetFriendsByUserIdAsync(long userId, CancellationToken cancellationToken)
-    {
-        var sql = $"""
-SELECT
-    "FriendId"
-FROM
-    "{FriendsTableName}"
-WHERE
-    "UserId" = @Id
-""";
-
-        await using var connection = _source.CreateConnection();
-        await using var query = new NpgsqlCommand(sql, connection);
-        query.Parameters.AddWithValue("Id", userId);
-        
-        await connection.OpenAsync(cancellationToken);
-        await using var reader = await query.ExecuteReaderAsync(cancellationToken);
-
-        var friends = new List<long>();
-        
-        while (await reader.ReadAsync(cancellationToken))
-            friends.Add(reader.GetInt64(0));
-
-        return friends;
+            new(dto.Password ?? string.Empty, dto.Salt ?? string.Empty));
     }
 
     private async Task<UserDbDto?> GetUserDtoByIdAsync(long id, CancellationToken cancellationToken)

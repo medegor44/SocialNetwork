@@ -11,8 +11,6 @@ public sealed class User : Entity<long>, IAggregateRoot
     public Name LastName { get; }
     public Age Age { get; }
     public Biography Biography { get; }
-    public IReadOnlyCollection<long> FriendIds { get; } = new List<long>();
-    public IReadOnlyCollection<long> PostsIds { get; } = new List<long>();
     public Password? Password { get; }
 
     public User(Name firstName, Name lastName, Age age, Biography biography, City city, Password? password)
@@ -29,34 +27,5 @@ public sealed class User : Entity<long>, IAggregateRoot
         : this(firstName, lastName, age, biography, city, password) 
     {
         Id = id;
-    }
-
-    public User(
-        long id, 
-        Name firstName, 
-        Name lastName, 
-        Age age, 
-        Biography biography, 
-        City city, 
-        Password? password,
-        IReadOnlyCollection<long> friendIds)
-        : this(id, firstName, lastName, age, biography, city, password)
-    {
-        FriendIds = friendIds;
-    }
-
-    public User(
-        long id, 
-        Name firstName, 
-        Name lastName, 
-        Age age, 
-        Biography biography, 
-        City city, 
-        Password? password,
-        IReadOnlyCollection<long> friendIds, 
-        IReadOnlyCollection<long> postsIdsIds)
-        : this(id, firstName, lastName, age, biography, city, password, friendIds)
-    {
-        PostsIds = postsIdsIds;
     }
 }

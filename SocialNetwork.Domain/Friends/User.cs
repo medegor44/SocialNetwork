@@ -12,7 +12,7 @@ public class User : Entity<long>, IAggregateRoot
     }
 
     public User AddFriends(IReadOnlyCollection<Friend> friends) => 
-        new(Id, friends.Select(friend => friend.AddFriend(Id)).Concat(Friends).ToHashSet());
+        new(Id, friends.Concat(Friends).ToHashSet());
 
     public User DeleteFriends(IReadOnlyCollection<Friend> friends) =>
         new(Id, Friends.Except(friends).ToHashSet());

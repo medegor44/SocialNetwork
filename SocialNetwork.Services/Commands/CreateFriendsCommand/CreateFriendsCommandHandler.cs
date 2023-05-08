@@ -1,5 +1,5 @@
 ﻿using SocialNetwork.Domain.Friends;
-using SocialNetwork.Domain.Friends.Repostitories;
+using SocialNetwork.Domain.Friends.Repositories;
 using SocialNetwork.Services.Abstractions;
 using SocialNetwork.Services.Exceptions;
 
