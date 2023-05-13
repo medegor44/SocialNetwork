@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using SocialNetwork.DataAccess.Repositories;
 using SocialNetwork.Domain.Dictionaries;
+using SocialNetwork.Domain.Friends.Repositories;
+using SocialNetwork.Domain.Posts.Repositories;
 using SocialNetwork.Domain.Users.Repositories;
 
 namespace SocialNetwork.DataAccess.Extensions;
@@ -20,7 +22,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<ICitiesRepository, CitiesRepository>();
+        services.AddScoped<ICitiesRepository, CitiesRepository>()
+            .AddScoped<IFriendsRepository, FriendsRepository>()
+            .AddScoped<IPostRepository, PostsRepository>();
         return services;
     }
 }

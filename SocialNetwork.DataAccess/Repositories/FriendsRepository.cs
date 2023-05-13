@@ -25,9 +25,9 @@ public class FriendsRepository : IFriendsRepository
         var sql = $"""
 SELECT
     u."Id",
-    f."FriendId",
+    f."FriendId"
 FROM
-    "{FriendsTableName}" f LEFT JOIN "{UsersTableName}" u ON f."UserId" = u."Id"
+    "{FriendsTableName}" f RIGHT JOIN "{UsersTableName}" u ON f."UserId" = u."Id"
 WHERE
     u."Id" = ANY(ARRAY[@Ids]::INT8[])
 """;
@@ -36,6 +36,8 @@ WHERE
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue("Ids", ids);
 
+        await connection.OpenAsync(cancellationToken);
+        
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
         var dtos = new List<FriendDbDto>();
@@ -75,6 +77,8 @@ WHERE
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue("Ids", ids);
 
+        await connection.OpenAsync(cancellationToken);
+        
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
         var selectedIds = new List<long>();
@@ -89,6 +93,9 @@ WHERE
     private async Task CreateFriendAsync(IReadOnlyCollection<Friend> newFriends, long userId, NpgsqlConnection connection,
         CancellationToken cancellationToken)
     {
+        if (newFriends is {Count: 0} or null)
+            return;
+        
         var values = string.Join(",", newFriends
             .Select(x => $"({userId}, {x.Id}), ({x.Id}, {userId})"));
 
@@ -104,6 +111,9 @@ VALUES {values}
     private async Task RemoveFriendsAsync(IReadOnlyCollection<Friend> removedFriends, long userId,
         NpgsqlConnection connection, CancellationToken cancellationToken)
     {
+        if (removedFriends is {Count:0} or null)
+            return;
+        
         var sql = $"""
 DELETE FROM "{FriendsTableName}"
 WHERE 
@@ -124,6 +134,7 @@ WHERE
         var recentlyRemovedFriends = oldUser.Friends.Except(updatedUser.Friends).ToList();
 
         await using var connection = _source.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         try
