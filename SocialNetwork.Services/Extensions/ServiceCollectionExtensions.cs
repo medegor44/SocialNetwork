@@ -7,6 +7,7 @@ using SocialNetwork.Services.Commands.DeletePostCommand;
 using SocialNetwork.Services.Commands.RemoveFriendsCommand;
 using SocialNetwork.Services.Commands.UpdatePostCommand;
 using SocialNetwork.Services.CommonServices;
+using SocialNetwork.Services.Queries;
 using SocialNetwork.Services.Queries.AuthenticationQuery;
 using SocialNetwork.Services.Queries.GetPostsFeed;
 using SocialNetwork.Services.Queries.GetUserByFilterQuery;
@@ -27,10 +28,12 @@ public static class ServiceCollectionExtensions
             .AddScoped<IRequestHandler<CreateFriendsCommand>, CreateFriendsCommandHandler>()
             .AddScoped<IRequestHandler<RemoveFriendsCommand>, RemoveFriendsCommandHandler>();
         
-        services.AddScoped<IRequestHandler<CreatePostCommand, CreatePostCommandResponse>, CreatePostCommandHandler>()
+        services
+            .AddScoped<IRequestHandler<CreatePostCommand, CreatePostCommandResponse>, CreatePostCommandHandler>()
             .AddScoped<IRequestHandler<UpdatePostCommand>, UpdatePostCommandHandler>()
             .AddScoped<IRequestHandler<DeletePostCommand>, DeletePostCommandHandler>()
-            .AddScoped<IRequestHandler<GetPostsFeedQuery, GetPostsFeedQueryResponse>, GetPostsFeedQueryHandler>();
+            .AddScoped<IRequestHandler<GetPostsFeedQuery, GetPostsFeedQueryResponse>, GetPostsFeedQueryHandler>()
+            .AddScoped<IRequestHandler<GetPostsByIdQuery, GetPostsByIdQueryResponse>, GetPostsByIdsQueryHandler>();
         return services;
     }
 

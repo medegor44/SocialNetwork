@@ -38,6 +38,7 @@ RETURNING "Id"
 
         command.Parameters.AddWithValue(nameof(PostDbDto.UserId), dto.UserId);
         command.Parameters.AddWithValue(nameof(PostDbDto.Text), dto.Text);
+        command.Parameters.AddWithValue(nameof(PostDbDto.CreateDate), dto.CreateDate);
         
         await connection.OpenAsync(cancellationToken);
 
@@ -111,6 +112,8 @@ WHERE
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue("Ids", ids.ToList());
 
+        await connection.OpenAsync(cancellationToken);
+        
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var dtos = new List<PostDbDto>();
         while (await reader.ReadAsync(cancellationToken))
@@ -133,27 +136,46 @@ WHERE
     public async Task<Feed> GetFeedAsync(FeedOptions options, CancellationToken cancellationToken)
     {
         var sql = $"""
-WITH TopPosts AS (
-    SELECT
+WITH 
+"Posts" AS (
+    (SELECT
         p."Id",
         p."UserId",
         p."Text",
         p."CreateDate"
     FROM 
-        {PostsTableName} p 
-            JOIN {FriendsTableName} f ON p."UserId" = f."FriendId"
+        "{PostsTableName}" p 
+            JOIN "{FriendsTableName}" f ON p."UserId" = f."FriendId"
     WHERE
-        f."UserId" = @UserId OR p."UserId" = @UserId
+        f."UserId" = @UserId
     ORDER BY
         p."CreateDate" DESC
-    LIMIT @TotalPosts
+    LIMIT @TotalPosts)
+
+    UNION
+
+    (SELECT
+        p."Id",
+        p."UserId",
+        p."Text",
+        p."CreateDate"
+    FROM 
+        "{PostsTableName}" p 
+    WHERE
+        p."UserId" = @UserId
+    ORDER BY
+        p."CreateDate" DESC
+    LIMIT @TotalPosts)
 )
 SELECT 
     t."Id",
     t."UserId",
-    t."Text"
+    t."Text",
+    t."CreateDate"
 FROM 
-    "TopPosts" t
+    "Posts" AS t
+ORDER BY 
+    t."CreateDate" DESC
 LIMIT @Limit
 OFFSET @Offset
 """;
