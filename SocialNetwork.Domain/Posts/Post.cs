@@ -14,4 +14,11 @@ public sealed class Post : Entity<long>, IAggregateRoot
         Text = text;
         UserId = userId;
     }
+    
+    public Post(Text text, long userId)
+    {
+        Id = default;
+        Text = text;
+        UserId = userId;
+    }
 }

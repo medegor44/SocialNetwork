@@ -26,9 +26,12 @@ public class PostsController : Controller
     public async Task<IResult> CreateAsync(
         [FromBody] CreateRequest request,
         [FromServices] IRequestHandler<CreatePostCommand, CreatePostCommandResponse> handler,
+        [FromServices] IClaimsStore claimsStore,
         CancellationToken cancellationToken)
     {
-        var response = await handler.HandleAsync(new(request.Text), cancellationToken);
+        var userId = claimsStore.FromClaims(HttpContext.User.Claims).GetUserId();
+        
+        var response = await handler.HandleAsync(new(request.Text, userId), cancellationToken);
         
         return Results.Ok(response.Id);
     }

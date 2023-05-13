@@ -2,4 +2,4 @@
 
 namespace SocialNetwork.Services.Commands.CreatePostCommand;
 
-public record CreatePostCommand(string Text) : IRequest<CreatePostCommandResponse>;
+public record CreatePostCommand(string Text, long UserId) : IRequest<CreatePostCommandResponse>;
