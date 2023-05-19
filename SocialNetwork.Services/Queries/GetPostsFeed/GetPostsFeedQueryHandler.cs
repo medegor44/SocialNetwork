@@ -6,9 +6,9 @@ namespace SocialNetwork.Services.Queries.GetPostsFeed;
 
 public class GetPostsFeedQueryHandler : IRequestHandler<GetPostsFeedQuery, GetPostsFeedQueryResponse>
 {
-    private readonly IPostRepository _repository;
+    private readonly IPostsRepository _repository;
 
-    public GetPostsFeedQueryHandler(IPostRepository repository)
+    public GetPostsFeedQueryHandler(IPostsRepository repository)
     {
         _repository = repository;
     }

@@ -5,9 +5,9 @@ namespace SocialNetwork.Services.Commands.CreatePostCommand;
 
 public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, CreatePostCommandResponse>
 {
-    private readonly IPostRepository _repository;
+    private readonly IPostsRepository _repository;
 
-    public CreatePostCommandHandler(IPostRepository repository)
+    public CreatePostCommandHandler(IPostsRepository repository)
     {
         _repository = repository;
     }

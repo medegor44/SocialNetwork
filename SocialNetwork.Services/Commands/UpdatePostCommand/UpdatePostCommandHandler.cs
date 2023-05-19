@@ -5,9 +5,9 @@ namespace SocialNetwork.Services.Commands.UpdatePostCommand;
 
 public class UpdatePostCommandHandler : IRequestHandler<UpdatePostCommand>
 {
-    private readonly IPostRepository _repository;
+    private readonly IPostsRepository _repository;
 
-    public UpdatePostCommandHandler(IPostRepository repository)
+    public UpdatePostCommandHandler(IPostsRepository repository)
     {
         _repository = repository;
     }

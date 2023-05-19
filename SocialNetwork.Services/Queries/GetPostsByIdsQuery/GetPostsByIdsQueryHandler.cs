@@ -7,9 +7,9 @@ namespace SocialNetwork.Services.Queries;
 
 public class GetPostsByIdsQueryHandler : IRequestHandler<GetPostsByIdQuery, GetPostsByIdQueryResponse>
 {
-    private readonly IPostRepository _repository;
+    private readonly IPostsRepository _repository;
 
-    public GetPostsByIdsQueryHandler(IPostRepository repository)
+    public GetPostsByIdsQueryHandler(IPostsRepository repository)
     {
         _repository = repository;
     }

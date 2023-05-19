@@ -5,9 +5,9 @@ namespace SocialNetwork.Services.Commands.DeletePostCommand;
 
 public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand>
 {
-    private readonly IPostRepository _repository;
+    private readonly IPostsRepository _repository;
 
-    public DeletePostCommandHandler(IPostRepository repository)
+    public DeletePostCommandHandler(IPostsRepository repository)
     {
         _repository = repository;
     }

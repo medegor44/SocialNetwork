@@ -2,7 +2,7 @@
 
 namespace SocialNetwork.Domain.Posts.Repositories;
 
-public interface IPostRepository
+public interface IPostsRepository
 {
     Task<Post> CreateAsync(Post post, CancellationToken cancellationToken);
     Task UpdateAsync(Post updatedPost, CancellationToken cancellationToken);

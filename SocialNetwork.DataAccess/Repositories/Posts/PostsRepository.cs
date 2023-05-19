@@ -7,7 +7,7 @@ using SocialNetwork.Domain.Posts.ValueObjects;
 
 namespace SocialNetwork.DataAccess.Repositories;
 
-public class PostsRepository : IPostRepository
+public class PostsRepository : IPostsRepository
 {
     private readonly NpgsqlDataSource _source;
     private const string PostsTableName = "Posts";

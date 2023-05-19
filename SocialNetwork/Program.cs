@@ -78,6 +78,8 @@ else
     });
 
     builder.Services.AddScoped<IClaimsStore, ClaimsStore>();
+
+    builder.Services.AddCache(builder.Configuration);
     
     var app = builder.Build();
 
