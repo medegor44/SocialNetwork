@@ -10,4 +10,6 @@ public class PostCacheDto
     public long UserId { get; set; }
     [JsonPropertyOrder(3)]
     public string? Text { get; set; }
+    [JsonPropertyOrder(4)]
+    public DateTimeOffset CreateDate { get; set; }
 }

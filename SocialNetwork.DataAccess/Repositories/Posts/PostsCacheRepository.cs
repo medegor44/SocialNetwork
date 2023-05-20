@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.VisualBasic;
 using SocialNetwork.DataAccess.Repositories.Dto;
 using SocialNetwork.Domain.Friends.Entities;
 using SocialNetwork.Domain.Friends.Repositories;
@@ -7,7 +8,7 @@ using SocialNetwork.Domain.Posts.Repositories;
 using SocialNetwork.Domain.Posts.ValueObjects;
 using StackExchange.Redis;
 
-namespace SocialNetwork.DataAccess.Repositories;
+namespace SocialNetwork.DataAccess.Repositories.Posts;
 
 public class PostsCacheRepository : IPostsRepository
 {
@@ -18,6 +19,7 @@ public class PostsCacheRepository : IPostsRepository
     private static class CacheKeys
     {
         public static string Feed(long userId) => $"user:{userId}:feed";
+        public static string FeedList(long userId) => $"user:{userId}:feed:list";
     }
 
     public PostsCacheRepository(
@@ -36,27 +38,7 @@ public class PostsCacheRepository : IPostsRepository
 
         try
         {
-            var user = await _friendsRepository.GetUserByIdAsync(post.UserId, cancellationToken);
-
-            var cache = _connectionMultiplexer.GetDatabase();
-            var cacheDto = new PostCacheDto()
-            {
-                UserId = createdPost.UserId,
-                Text = createdPost.Text.Value,
-                Id = createdPost.Id
-            };
-
-            var transaction = cache.CreateTransaction();
-
-            foreach (var friend in user?.Friends ?? ArraySegment<Friend>.Empty)
-            {
-                var redisKey = CacheKeys.Feed(friend.Id);
-                await transaction.ListRightPushAsync(redisKey, JsonSerializer.Serialize(cacheDto));
-                if (await transaction.ListLengthAsync(redisKey) > Feed.MaxPosts)
-                    await transaction.ListLeftPopAsync(redisKey);
-            }
-
-            await transaction.ExecuteAsync();
+            await PushPostToFriendsFeed(post, cancellationToken, createdPost);
         }
         catch
         {
@@ -66,36 +48,50 @@ public class PostsCacheRepository : IPostsRepository
         return createdPost;
     }
 
+    private async Task PushPostToFriendsFeed(Post post, CancellationToken cancellationToken, Post createdPost)
+    {
+        var user = await _friendsRepository.GetUserByIdAsync(post.UserId, cancellationToken);
+
+        var feedRecipientsIds = user?
+            .Friends
+            .Select(x => x.Id)
+            .Concat(new[] {user.Id}) ?? ArraySegment<long>.Empty;
+
+        var cache = _connectionMultiplexer.GetDatabase();
+        var cacheDto = new PostCacheDto()
+        {
+            UserId = createdPost.UserId,
+            Text = createdPost.Text.Value,
+            Id = createdPost.Id,
+            CreateDate = DateTimeOffset.UtcNow
+        };
+
+        var transaction = cache.CreateTransaction();
+
+        foreach (var friend in feedRecipientsIds)
+        {
+            var hashKey = CacheKeys.Feed(friend);
+            var feedList = CacheKeys.FeedList(friend);
+
+            await transaction.HashSetAsync(hashKey, cacheDto.Id.ToString(), JsonSerializer.Serialize(cacheDto));
+            await transaction.ListRightPushAsync(feedList, cacheDto.Id);
+
+            if (await transaction.ListLengthAsync(feedList) > Feed.MaxPosts)
+            {
+                var extraPostId = await transaction.ListLeftPopAsync(feedList);
+                await transaction.HashDeleteAsync(hashKey, extraPostId);
+            }
+        }
+
+        await transaction.ExecuteAsync();
+    }
+
     public async Task UpdateAsync(Post updatedPost, CancellationToken cancellationToken)
     {
         await _postsRepository.UpdateAsync(updatedPost, cancellationToken);
         try
         {
-
-            var user = await _friendsRepository.GetUserByIdAsync(updatedPost.UserId, cancellationToken);
-
-            var cache = _connectionMultiplexer.GetDatabase();
-            var cacheDto = new PostCacheDto()
-            {
-                Id = updatedPost.Id,
-                Text = updatedPost.Text.Value,
-                UserId = updatedPost.UserId
-            };
-
-            var transaction = cache.CreateTransaction();
-        
-            foreach (var friend in user?.Friends ?? ArraySegment<Friend>.Empty)
-            {
-                var redisKey = CacheKeys.Feed(friend.Id);
-                var (_, position) = (await transaction.ListRangeAsync(redisKey))
-                    .Where(serialized => serialized.HasValue)
-                    .Select((serialized, idx) => (Post: JsonSerializer.Deserialize<PostCacheDto>(serialized!), Idx: idx))
-                    .FirstOrDefault(pair => pair.Post!.Id == updatedPost.Id);
-            
-                await transaction.ListSetByIndexAsync(redisKey, position, JsonSerializer.Serialize(cacheDto));
-            }
-
-            await transaction.ExecuteAsync();
+            await UpdatePostInFriendsFeed(updatedPost, cancellationToken);
         }
         catch
         {
@@ -103,9 +99,76 @@ public class PostsCacheRepository : IPostsRepository
         }
     }
 
-    public Task DeleteAsync(long id, CancellationToken cancellationToken)
+    private async Task UpdatePostInFriendsFeed(Post updatedPost, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var user = await _friendsRepository.GetUserByIdAsync(updatedPost.UserId, cancellationToken);
+        var feedRecipientsIds = user?
+            .Friends
+            .Select(x => x.Id)
+            .Concat(new[] {user.Id}) ?? ArraySegment<long>.Empty;
+
+        var cache = _connectionMultiplexer.GetDatabase();
+        var cacheDto = new PostCacheDto()
+        {
+            Id = updatedPost.Id,
+            Text = updatedPost.Text.Value,
+            UserId = updatedPost.UserId
+        };
+
+        var transaction = cache.CreateTransaction();
+
+        foreach (var friend in feedRecipientsIds)
+        {
+            var hashKey = CacheKeys.Feed(friend);
+            
+            if (!cache.HashExists(hashKey, cacheDto.Id.ToString()))
+                continue;
+
+            await cache.HashSetAsync(hashKey, cacheDto.Id.ToString(), JsonSerializer.Serialize(cacheDto));
+        }
+
+        await transaction.ExecuteAsync();
+    }
+
+    public async Task DeleteAsync(long id, CancellationToken cancellationToken)
+    {
+        await _postsRepository.DeleteAsync(id, cancellationToken);
+
+        try
+        {
+            await DeleteFromFriendsFeed(id, cancellationToken);
+        }
+        catch
+        {
+            // ignored
+        }
+    }
+
+    private async Task DeleteFromFriendsFeed(long id, CancellationToken cancellationToken)
+    {
+        var cache = _connectionMultiplexer.GetDatabase();
+
+        var user = await _friendsRepository.GetUserByIdAsync(id, cancellationToken);
+        var feedRecipientsIds = user?
+            .Friends
+            .Select(x => x.Id)
+            .Concat(new[] {user.Id}) ?? ArraySegment<long>.Empty;
+
+        var transaction = cache.CreateTransaction();
+
+        foreach (var friend in feedRecipientsIds)
+        {
+            var hashKey = CacheKeys.Feed(friend);
+            var feedList = CacheKeys.FeedList(friend);
+            var shouldRemoveFromList = await cache.HashDeleteAsync(hashKey, id.ToString());
+
+            if (!shouldRemoveFromList)
+                continue;
+
+            await cache.ListRemoveAsync(feedList, id);
+        }
+
+        await transaction.ExecuteAsync();
     }
 
     public Task<IReadOnlyCollection<Post>> GetByIdsAsync(IReadOnlyCollection<long> ids, CancellationToken cancellationToken) => 
@@ -119,10 +182,11 @@ public class PostsCacheRepository : IPostsRepository
             if (await cache.KeyTouchAsync(CacheKeys.Feed(options.FeedRecipientUserId)))
             {
                 var feed = (await cache
-                        .ListRangeAsync(CacheKeys.Feed(options.FeedRecipientUserId)))
-                    .Where(x => x.HasValue)
-                    .Select(serializedPost => JsonSerializer.Deserialize<PostCacheDto>(serializedPost!))
-                    .Select(x => new Post(x.Id, new(x.Text), x.UserId))
+                        .HashGetAllAsync(CacheKeys.Feed(options.FeedRecipientUserId)))
+                    .Where(x => x.Value.HasValue)
+                    .Select(serializedPost => JsonSerializer.Deserialize<PostCacheDto>(serializedPost.Value!))
+                    .OrderBy(x => x.CreateDate)
+                    .Select(x => new Post(x!.Id, new(x.Text!), x.UserId))
                     .ToList();
 
                 return new(feed

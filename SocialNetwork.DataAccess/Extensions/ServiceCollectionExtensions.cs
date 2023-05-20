@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using SocialNetwork.DataAccess.Repositories;
+using SocialNetwork.DataAccess.Repositories.Posts;
 using SocialNetwork.Domain.Dictionaries;
 using SocialNetwork.Domain.Friends.Repositories;
 using SocialNetwork.Domain.Posts.Repositories;
