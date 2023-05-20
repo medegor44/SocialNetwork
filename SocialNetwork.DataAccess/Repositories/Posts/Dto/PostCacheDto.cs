@@ -1,8 +1,13 @@
-﻿namespace SocialNetwork.DataAccess.Repositories.Dto;
+﻿using System.Text.Json.Serialization;
+
+namespace SocialNetwork.DataAccess.Repositories.Dto;
 
 public class PostCacheDto
 {
+    [JsonPropertyOrder(1)]
     public long Id { get; set; }
+    [JsonPropertyOrder(2)]
     public long UserId { get; set; }
-    public string Text { get; set; }
+    [JsonPropertyOrder(3)]
+    public string? Text { get; set; }
 }

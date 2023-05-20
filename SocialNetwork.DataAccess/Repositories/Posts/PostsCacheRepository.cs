@@ -1,7 +1,6 @@
-﻿using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using SocialNetwork.DataAccess.Repositories.Dto;
+using SocialNetwork.Domain.Friends.Entities;
 using SocialNetwork.Domain.Friends.Repositories;
 using SocialNetwork.Domain.Posts;
 using SocialNetwork.Domain.Posts.Repositories;
@@ -16,7 +15,7 @@ public class PostsCacheRepository : IPostsRepository
     private readonly IPostsRepository _postsRepository;
     private readonly IFriendsRepository _friendsRepository;
 
-    private class CacheKeys
+    private static class CacheKeys
     {
         public static string Feed(long userId) => $"user:{userId}:feed";
     }
@@ -31,14 +30,77 @@ public class PostsCacheRepository : IPostsRepository
         _friendsRepository = friendsRepository;
     }
     
-    public Task<Post> CreateAsync(Post post, CancellationToken cancellationToken)
+    public async Task<Post> CreateAsync(Post post, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var createdPost = await _postsRepository.CreateAsync(post, cancellationToken);
+
+        try
+        {
+            var user = await _friendsRepository.GetUserByIdAsync(post.UserId, cancellationToken);
+
+            var cache = _connectionMultiplexer.GetDatabase();
+            var cacheDto = new PostCacheDto()
+            {
+                UserId = createdPost.UserId,
+                Text = createdPost.Text.Value,
+                Id = createdPost.Id
+            };
+
+            var transaction = cache.CreateTransaction();
+
+            foreach (var friend in user?.Friends ?? ArraySegment<Friend>.Empty)
+            {
+                var redisKey = CacheKeys.Feed(friend.Id);
+                await transaction.ListRightPushAsync(redisKey, JsonSerializer.Serialize(cacheDto));
+                if (await transaction.ListLengthAsync(redisKey) > Feed.MaxPosts)
+                    await transaction.ListLeftPopAsync(redisKey);
+            }
+
+            await transaction.ExecuteAsync();
+        }
+        catch
+        {
+            // ignored
+        }
+
+        return createdPost;
     }
 
-    public Task UpdateAsync(Post updatedPost, CancellationToken cancellationToken)
+    public async Task UpdateAsync(Post updatedPost, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await _postsRepository.UpdateAsync(updatedPost, cancellationToken);
+        try
+        {
+
+            var user = await _friendsRepository.GetUserByIdAsync(updatedPost.UserId, cancellationToken);
+
+            var cache = _connectionMultiplexer.GetDatabase();
+            var cacheDto = new PostCacheDto()
+            {
+                Id = updatedPost.Id,
+                Text = updatedPost.Text.Value,
+                UserId = updatedPost.UserId
+            };
+
+            var transaction = cache.CreateTransaction();
+        
+            foreach (var friend in user?.Friends ?? ArraySegment<Friend>.Empty)
+            {
+                var redisKey = CacheKeys.Feed(friend.Id);
+                var (_, position) = (await transaction.ListRangeAsync(redisKey))
+                    .Where(serialized => serialized.HasValue)
+                    .Select((serialized, idx) => (Post: JsonSerializer.Deserialize<PostCacheDto>(serialized!), Idx: idx))
+                    .FirstOrDefault(pair => pair.Post!.Id == updatedPost.Id);
+            
+                await transaction.ListSetByIndexAsync(redisKey, position, JsonSerializer.Serialize(cacheDto));
+            }
+
+            await transaction.ExecuteAsync();
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     public Task DeleteAsync(long id, CancellationToken cancellationToken)
@@ -46,10 +108,8 @@ public class PostsCacheRepository : IPostsRepository
         throw new NotImplementedException();
     }
 
-    public Task<IReadOnlyCollection<Post>> GetByIdsAsync(IReadOnlyCollection<long> ids, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<IReadOnlyCollection<Post>> GetByIdsAsync(IReadOnlyCollection<long> ids, CancellationToken cancellationToken) => 
+        _postsRepository.GetByIdsAsync(ids, cancellationToken);
 
     public async Task<Feed> GetFeedAsync(FeedOptions options, CancellationToken cancellationToken)
     {
