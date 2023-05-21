@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace SocialNetwork.DataAccess.Repositories.Dto;
+namespace SocialNetwork.DataAccess.Repositories.Posts.Cache;
 
 public class PostCacheDto
 {

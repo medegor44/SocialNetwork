@@ -1,14 +1,11 @@
 ﻿using System.Text.Json;
-using Microsoft.VisualBasic;
-using SocialNetwork.DataAccess.Repositories.Dto;
-using SocialNetwork.Domain.Friends.Entities;
 using SocialNetwork.Domain.Friends.Repositories;
 using SocialNetwork.Domain.Posts;
 using SocialNetwork.Domain.Posts.Repositories;
 using SocialNetwork.Domain.Posts.ValueObjects;
 using StackExchange.Redis;
 
-namespace SocialNetwork.DataAccess.Repositories.Posts;
+namespace SocialNetwork.DataAccess.Repositories.Posts.Cache;
 
 public class PostsCacheRepository : IPostsRepository
 {
@@ -73,8 +70,16 @@ public class PostsCacheRepository : IPostsRepository
             var hashKey = CacheKeys.Feed(friend);
             var feedList = CacheKeys.FeedList(friend);
 
-            await transaction.HashSetAsync(hashKey, cacheDto.Id.ToString(), JsonSerializer.Serialize(cacheDto));
-            await transaction.ListRightPushAsync(feedList, cacheDto.Id);
+            await transaction.HashSetAsync(
+                hashKey, 
+                cacheDto.Id.ToString(), 
+                JsonSerializer.Serialize(cacheDto), 
+                When.Exists);
+            
+            await transaction.ListRightPushAsync(
+                feedList, 
+                cacheDto.Id, 
+                When.Exists);
 
             if (await transaction.ListLengthAsync(feedList) > Feed.MaxPosts)
             {
@@ -121,10 +126,11 @@ public class PostsCacheRepository : IPostsRepository
         {
             var hashKey = CacheKeys.Feed(friend);
             
-            if (!cache.HashExists(hashKey, cacheDto.Id.ToString()))
-                continue;
-
-            await cache.HashSetAsync(hashKey, cacheDto.Id.ToString(), JsonSerializer.Serialize(cacheDto));
+            await cache.HashSetAsync(
+                hashKey, 
+                cacheDto.Id.ToString(), 
+                JsonSerializer.Serialize(cacheDto),
+                When.Exists);
         }
 
         await transaction.ExecuteAsync();
@@ -160,12 +166,11 @@ public class PostsCacheRepository : IPostsRepository
         {
             var hashKey = CacheKeys.Feed(friend);
             var feedList = CacheKeys.FeedList(friend);
-            var shouldRemoveFromList = await cache.HashDeleteAsync(hashKey, id.ToString());
+            await cache.HashDeleteAsync(
+                hashKey, 
+                id.ToString());
 
-            if (!shouldRemoveFromList)
-                continue;
-
-            await cache.ListRemoveAsync(feedList, id);
+            await cache.ListRemoveAsync(feedList, id.ToString());
         }
 
         await transaction.ExecuteAsync();
