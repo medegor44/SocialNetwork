@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using SocialNetwork.DataAccess.DbDto;
+using SocialNetwork.DataAccess.Repositories.Posts.Cache;
 using SocialNetwork.Domain.Friends;
 using SocialNetwork.Domain.Friends.Entities;
 using SocialNetwork.Domain.Friends.Repositories;
@@ -9,12 +10,14 @@ namespace SocialNetwork.DataAccess.Repositories;
 public class FriendsRepository : IFriendsRepository
 {
     private readonly NpgsqlDataSource _source;
+    private readonly IPostsCacheInvalidator _invalidator;
     private const string FriendsTableName = "Friends";
     private const string UsersTableName = "Users";
 
-    public FriendsRepository(NpgsqlDataSource source)
+    public FriendsRepository(NpgsqlDataSource source, IPostsCacheInvalidator invalidator)
     {
         _source = source;
+        _invalidator = invalidator;
     }
 
     public async Task<User?> GetUserByIdAsync(long id, CancellationToken cancellationToken) =>
@@ -106,6 +109,8 @@ VALUES {values}
 
         await using var command = new NpgsqlCommand(sql, connection);
         await command.ExecuteNonQueryAsync(cancellationToken);
+        
+        await _invalidator.InvalidateAsync(newFriends.Select(x => x.Id).Concat(new[]{userId}).ToList());
     }
 
     private async Task RemoveFriendsAsync(IReadOnlyCollection<Friend> removedFriends, long userId,
@@ -126,6 +131,8 @@ WHERE
         command.Parameters.AddWithValue("FriendIds", removedFriends.Select(x => x.Id).ToList());
 
         await command.ExecuteNonQueryAsync(cancellationToken);
+        
+        await _invalidator.InvalidateAsync(removedFriends.Select(x => x.Id).Concat(new[]{userId}).ToList());
     }
 
     public async Task UpdateUserAsync(User oldUser, User updatedUser, CancellationToken cancellationToken)

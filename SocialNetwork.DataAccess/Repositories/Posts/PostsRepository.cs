@@ -28,12 +28,13 @@ RETURNING "Id"
 
         await using var connection = _source.CreateConnection();
         await using var command = new NpgsqlCommand(sql, connection);
-
+        var createDate = DateTimeOffset.UtcNow;
+        
         var dto = new PostDbDto()
         {
             UserId = post.UserId,
             Text = post.Text.Value,
-            CreateDate = DateTimeOffset.UtcNow
+            CreateDate = createDate
         };
 
         command.Parameters.AddWithValue(nameof(PostDbDto.UserId), dto.UserId);
@@ -45,7 +46,7 @@ RETURNING "Id"
         if (await command.ExecuteScalarAsync(cancellationToken) is not long id)
             throw new InfrastructureException("Couldn't create post");
 
-        return new(id, post.Text, post.UserId);
+        return new(id, post.Text, post.UserId, createDate);
     }
 
     public async Task UpdateAsync(Post updatedPost, CancellationToken cancellationToken)
@@ -101,7 +102,8 @@ WHERE "Id" = @{nameof(PostDbDto.Id)}
 SELECT
     "Id",
     "Text",
-    "UserId"
+    "UserId",
+    "CreateDate"
 FROM
     "{PostsTableName}"
 WHERE
@@ -122,14 +124,15 @@ WHERE
             {
                 Id = await reader.GetFieldValueAsync<long>(0, cancellationToken),
                 Text = await reader.GetFieldValueAsync<string>(1, cancellationToken),
-                UserId = await reader.GetFieldValueAsync<long>(2, cancellationToken)
+                UserId = await reader.GetFieldValueAsync<long>(2, cancellationToken),
+                CreateDate = await reader.GetFieldValueAsync<DateTimeOffset>(3, cancellationToken)
             };
             
             dtos.Add(dto);
         }
 
         return dtos
-            .Select(x => new Post(x.Id, new(x.Text), x.UserId))
+            .Select(x => new Post(x.Id, new(x.Text), x.UserId, x.CreateDate))
             .ToList();
     }
 
@@ -198,14 +201,16 @@ OFFSET @Offset
             { 
                 Id = await reader.GetFieldValueAsync<long>(0, cancellationToken),
                 UserId = await reader.GetFieldValueAsync<long>(1, cancellationToken),
-                Text = await reader.GetFieldValueAsync<string>(2, cancellationToken)
+                Text = await reader.GetFieldValueAsync<string>(2, cancellationToken),
+                CreateDate = await reader.GetFieldValueAsync<DateTimeOffset>(3, cancellationToken)
             });
 
         return new(postDbDtos
                 .Select(x => new Post(
                     x.Id,
                     new(x.Text),
-                    x.UserId)).ToList(),
+                    x.UserId, 
+                    x.CreateDate)).ToList(),
             Feed.MaxPosts);
     }
 }

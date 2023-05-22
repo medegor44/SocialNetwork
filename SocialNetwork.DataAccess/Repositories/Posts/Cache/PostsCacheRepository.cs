@@ -7,7 +7,7 @@ using StackExchange.Redis;
 
 namespace SocialNetwork.DataAccess.Repositories.Posts.Cache;
 
-public class PostsCacheRepository : IPostsRepository
+public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
 {
     private readonly IConnectionMultiplexer _connectionMultiplexer;
     private readonly IPostsRepository _postsRepository;
@@ -117,7 +117,8 @@ public class PostsCacheRepository : IPostsRepository
         {
             Id = updatedPost.Id,
             Text = updatedPost.Text.Value,
-            UserId = updatedPost.UserId
+            UserId = updatedPost.UserId,
+            CreateDate = updatedPost.CreateDate
         };
 
         var transaction = cache.CreateTransaction();
@@ -183,29 +184,86 @@ public class PostsCacheRepository : IPostsRepository
     {
         try
         {
-            var cache = _connectionMultiplexer.GetDatabase();
-            if (await cache.KeyTouchAsync(CacheKeys.Feed(options.FeedRecipientUserId)))
-            {
-                var feed = (await cache
-                        .HashGetAllAsync(CacheKeys.Feed(options.FeedRecipientUserId)))
-                    .Where(x => x.Value.HasValue)
-                    .Select(serializedPost => JsonSerializer.Deserialize<PostCacheDto>(serializedPost.Value!))
-                    .OrderBy(x => x.CreateDate)
-                    .Select(x => new Post(x!.Id, new(x.Text!), x.UserId))
-                    .ToList();
-
-                return new(feed
+            var posts = await GetPostsFromCacheOrDefaultAsync(options.FeedRecipientUserId);
+            if (posts != null)
+                return new(posts
                         .Skip(options.Offset)
                         .Take(options.Limit)
                         .ToList(),
-                    feed.Count);
-            }
+                    posts.Count);
         }
         catch
         { 
             // ignored
         }
 
-        return await _postsRepository.GetFeedAsync(options, cancellationToken);
+        var feed = await _postsRepository.GetFeedAsync(new(options.FeedRecipientUserId, 0, Feed.MaxPosts), cancellationToken);
+
+        try
+        {
+            await SaveToCache(feed.PostsOnPage, options.FeedRecipientUserId);
+        }
+        catch
+        {
+            // ignored
+        }
+
+        return new(feed.PostsOnPage
+                .Skip(options.Offset)
+                .Take(options.Limit)
+                .ToList(),
+            feed.TotalCount);
+    }
+
+    private async Task SaveToCache(IReadOnlyCollection<Post> posts, long userId)
+    {
+        var cache = _connectionMultiplexer.GetDatabase();
+
+        var hashEntries = posts
+            .Select(p => new PostCacheDto()
+            {
+                Id = p.Id,
+                Text = p.Text.Value,
+                UserId = p.UserId,
+                CreateDate = p.CreateDate
+            })
+            .Select(p => new HashEntry(p.Id.ToString(), JsonSerializer.Serialize(p)))
+            .ToArray();
+
+        var transaction = cache.CreateTransaction();
+        
+        await transaction.HashSetAsync(CacheKeys.Feed(userId), hashEntries);
+        foreach (var post in posts)
+            await transaction.ListRightPushAsync(CacheKeys.FeedList(userId), post.Id);
+
+        await transaction.ExecuteAsync();
+    }
+
+    private async Task<List<Post>?> GetPostsFromCacheOrDefaultAsync(long userId)
+    {
+        var cache = _connectionMultiplexer.GetDatabase();
+
+        if (!await cache.KeyTouchAsync(CacheKeys.Feed(userId))) 
+            return null;
+        
+        var feedFromCache = (await cache
+                .HashGetAllAsync(CacheKeys.Feed(userId)))
+            .Where(x => x.Value.HasValue)
+            .Select(serializedPost => JsonSerializer.Deserialize<PostCacheDto>(serializedPost.Value!))
+            .OrderBy(x => x.CreateDate)
+            .Select(x => new Post(x!.Id, new(x.Text!), x.UserId, x.CreateDate))
+            .ToList();
+
+        return feedFromCache;
+    }
+
+    public async Task InvalidateAsync(IReadOnlyCollection<long> userIds)
+    {
+        var hashKeys = userIds.Select(CacheKeys.Feed);
+        var listKeys = userIds.Select(CacheKeys.FeedList);
+
+        var cache = _connectionMultiplexer.GetDatabase();
+
+        await cache.KeyDeleteAsync(hashKeys.Concat(listKeys).Select(x => new RedisKey(x)).ToArray());
     }
 }
