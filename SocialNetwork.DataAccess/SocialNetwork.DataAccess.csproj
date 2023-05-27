@@ -19,8 +19,4 @@
       <ProjectReference Include="..\SocialNetwork.Postgres\SocialNetwork.Postgres.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Events\" />
-    </ItemGroup>
-
 </Project>

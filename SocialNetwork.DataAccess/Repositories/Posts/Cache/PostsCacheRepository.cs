@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using SocialNetwork.DataAccess.Redis;
 using SocialNetwork.Domain.Friends.Repositories;
 using SocialNetwork.Domain.Posts;
 using SocialNetwork.Domain.Posts.Repositories;
@@ -9,7 +10,7 @@ namespace SocialNetwork.DataAccess.Repositories.Posts.Cache;
 
 public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
 {
-    private readonly IConnectionMultiplexer _connectionMultiplexer;
+    private readonly IRedisProvider _provider;
     private readonly IPostsRepository _postsRepository;
     private readonly IFriendsRepository _friendsRepository;
 
@@ -20,11 +21,11 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
     }
 
     public PostsCacheRepository(
-        IConnectionMultiplexer connectionMultiplexer, 
+        IRedisProvider provider, 
         IPostsRepository postsRepository,
         IFriendsRepository friendsRepository)
     {
-        _connectionMultiplexer = connectionMultiplexer;
+        _provider = provider;
         _postsRepository = postsRepository;
         _friendsRepository = friendsRepository;
     }
@@ -54,7 +55,8 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
             .Select(x => x.Id)
             .Concat(new[] {user.Id}) ?? ArraySegment<long>.Empty;
 
-        var cache = _connectionMultiplexer.GetDatabase();
+        await using var connection = await _provider.CreateConnectionAsync();
+        var cache = connection.GetDatabase();
         var cacheDto = new PostCacheDto()
         {
             UserId = createdPost.UserId,
@@ -112,7 +114,8 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
             .Select(x => x.Id)
             .Concat(new[] {user.Id}) ?? ArraySegment<long>.Empty;
 
-        var cache = _connectionMultiplexer.GetDatabase();
+        await using var connection = await _provider.CreateConnectionAsync();
+        var cache = connection.GetDatabase();
         var cacheDto = new PostCacheDto()
         {
             Id = updatedPost.Id,
@@ -153,7 +156,8 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
 
     private async Task DeleteFromFriendsFeed(long id, CancellationToken cancellationToken)
     {
-        var cache = _connectionMultiplexer.GetDatabase();
+        await using var connection = await _provider.CreateConnectionAsync();
+        var cache = connection.GetDatabase();
 
         var user = await _friendsRepository.GetUserByIdAsync(id, cancellationToken);
         var feedRecipientsIds = user?
@@ -217,7 +221,8 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
 
     private async Task SaveToCache(IReadOnlyCollection<Post> posts, long userId)
     {
-        var cache = _connectionMultiplexer.GetDatabase();
+        await using var connection = await _provider.CreateConnectionAsync();
+        var cache = connection.GetDatabase();
 
         var hashEntries = posts
             .Select(p => new PostCacheDto()
@@ -241,7 +246,8 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
 
     private async Task<List<Post>?> GetPostsFromCacheOrDefaultAsync(long userId)
     {
-        var cache = _connectionMultiplexer.GetDatabase();
+        await using var connection = await _provider.CreateConnectionAsync();
+        var cache = connection.GetDatabase();
 
         if (!await cache.KeyTouchAsync(CacheKeys.Feed(userId))) 
             return null;
@@ -262,7 +268,8 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
         var hashKeys = userIds.Select(CacheKeys.Feed);
         var listKeys = userIds.Select(CacheKeys.FeedList);
 
-        var cache = _connectionMultiplexer.GetDatabase();
+        await using var connection = await _provider.CreateConnectionAsync();
+        var cache = connection.GetDatabase();
 
         await cache.KeyDeleteAsync(hashKeys.Concat(listKeys).Select(x => new RedisKey(x)).ToArray());
     }

@@ -3,13 +3,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using SocialNetwork.DataAccess.Redis;
 using SocialNetwork.DataAccess.Repositories;
 using SocialNetwork.DataAccess.Repositories.Posts.Cache;
 using SocialNetwork.Domain.Dictionaries;
 using SocialNetwork.Domain.Friends.Repositories;
 using SocialNetwork.Domain.Posts.Repositories;
 using SocialNetwork.Domain.Users.Repositories;
-using StackExchange.Redis;
 
 namespace SocialNetwork.DataAccess.Extensions;
 
@@ -24,12 +24,13 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddCache(this IServiceCollection services, IConfiguration configuration)
     {
-        return services.AddTransient<IConnectionMultiplexer, ConnectionMultiplexer>(p =>
-            ConnectionMultiplexer.Connect(
-                configuration.GetSection("RedisEndPoint").Value ?? 
+        return services.AddTransient<IRedisProvider, RedisProvider>(p =>
+            new(configuration
+                    .GetSection("RedisEndPoint")
+                    .Value ??
                 throw new InvalidOperationException("Endpoint should be specified")));
     }
-    
+
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
@@ -37,11 +38,13 @@ public static class ServiceCollectionExtensions
             .AddScoped<ICitiesRepository, CitiesRepository>()
             .AddScoped<IFriendsRepository, FriendsRepository>()
             .AddScoped<PostsRepository>()
-            .AddScoped<IPostsRepository, PostsCacheRepository>(p => new PostsCacheRepository(
-                p.GetRequiredService<IConnectionMultiplexer>(),
+            .AddScoped<PostsCacheRepository>(p => new PostsCacheRepository(
+                p.GetRequiredService<IRedisProvider>(),
                 p.GetRequiredService<PostsRepository>(),
                 p.GetRequiredService<IFriendsRepository>()
-                ));
+                ))
+            .AddScoped<IPostsCacheInvalidator>(p => p.GetRequiredService<PostsCacheRepository>())
+            .AddScoped<IPostsRepository>(p => p.GetRequiredService<PostsCacheRepository>());
         return services;
     }
 }
