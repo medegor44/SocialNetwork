@@ -42,9 +42,9 @@ public static class ServiceCollectionExtensions
                 p.GetRequiredService<IRedisProvider>(),
                 p.GetRequiredService<PostsRepository>(),
                 p.GetRequiredService<IFriendsRepository>()
-                ))
-            .AddScoped<IPostsCacheInvalidator>(p => p.GetRequiredService<PostsCacheRepository>())
+            ))
             .AddScoped<IPostsRepository>(p => p.GetRequiredService<PostsCacheRepository>());
+        
         return services;
     }
 }

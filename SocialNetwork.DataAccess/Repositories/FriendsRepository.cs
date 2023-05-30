@@ -14,10 +14,11 @@ public class FriendsRepository : IFriendsRepository
     private const string FriendsTableName = "Friends";
     private const string UsersTableName = "Users";
 
-    public FriendsRepository(NpgsqlDataSource source, IPostsCacheInvalidator invalidator)
+    public FriendsRepository(NpgsqlDataSource source)
     {
         _source = source;
-        _invalidator = invalidator;
+        // TODO: cyclic dependency; refactor
+        _invalidator = null;
     }
 
     public async Task<User?> GetUserByIdAsync(long id, CancellationToken cancellationToken) =>

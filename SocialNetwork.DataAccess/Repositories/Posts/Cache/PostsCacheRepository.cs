@@ -16,8 +16,10 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
 
     private static class CacheKeys
     {
-        public static string Feed(long userId) => $"user:{userId}:feed";
-        public static string FeedList(long userId) => $"user:{userId}:feed:list";
+        private static string UserEntity => "user";
+        public static string Feed(long userId) => $"{User(userId)}:feed";
+        public static string FeedList(long userId) => $"{Feed(userId)}:list";
+        public static string User(long userId) => $"{UserEntity}:{userId}";
     }
 
     public PostsCacheRepository(
@@ -71,22 +73,24 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
         {
             var hashKey = CacheKeys.Feed(friend);
             var feedList = CacheKeys.FeedList(friend);
-
-            await transaction.HashSetAsync(
+            var userCache = CacheKeys.User(friend);
+            
+            if (!await cache.KeyExistsAsync(userCache))
+                continue;
+            
+            _ = transaction.HashSetAsync(
                 hashKey, 
                 cacheDto.Id.ToString(), 
-                JsonSerializer.Serialize(cacheDto), 
-                When.Exists);
+                JsonSerializer.Serialize(cacheDto));
             
-            await transaction.ListRightPushAsync(
+            _ = transaction.ListRightPushAsync(
                 feedList, 
-                cacheDto.Id, 
-                When.Exists);
+                cacheDto.Id);
 
-            if (await transaction.ListLengthAsync(feedList) > Feed.MaxPosts)
+            if (await cache.ListLengthAsync(feedList) == Feed.MaxPosts)
             {
                 var extraPostId = await transaction.ListLeftPopAsync(feedList);
-                await transaction.HashDeleteAsync(hashKey, extraPostId);
+                _ = transaction.HashDeleteAsync(hashKey, extraPostId);
             }
         }
 
@@ -124,20 +128,19 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
             CreateDate = updatedPost.CreateDate
         };
 
-        var transaction = cache.CreateTransaction();
-
         foreach (var friend in feedRecipientsIds)
         {
             var hashKey = CacheKeys.Feed(friend);
+            var userCache = CacheKeys.User(friend);
             
+            if (!await cache.KeyExistsAsync(userCache))
+                continue;
+
             await cache.HashSetAsync(
                 hashKey, 
                 cacheDto.Id.ToString(), 
-                JsonSerializer.Serialize(cacheDto),
-                When.Exists);
+                JsonSerializer.Serialize(cacheDto));
         }
-
-        await transaction.ExecuteAsync();
     }
 
     public async Task DeleteAsync(long id, CancellationToken cancellationToken)
@@ -171,11 +174,16 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
         {
             var hashKey = CacheKeys.Feed(friend);
             var feedList = CacheKeys.FeedList(friend);
-            await cache.HashDeleteAsync(
+            var userCache = CacheKeys.User(friend);
+            
+            if (!await cache.KeyExistsAsync(userCache))
+                continue;
+
+            _ = transaction.HashDeleteAsync(
                 hashKey, 
                 id.ToString());
 
-            await cache.ListRemoveAsync(feedList, id.ToString());
+            _ = transaction.ListRemoveAsync(feedList, id.ToString());
         }
 
         await transaction.ExecuteAsync();
@@ -235,11 +243,12 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
             .Select(p => new HashEntry(p.Id.ToString(), JsonSerializer.Serialize(p)))
             .ToArray();
 
-        var transaction = cache.CreateTransaction();
-        
-        await transaction.HashSetAsync(CacheKeys.Feed(userId), hashEntries);
+        var asyncState = new object();
+        var transaction = cache.CreateTransaction(asyncState);
+        _ = transaction.StringSetAsync(CacheKeys.User(userId), userId);
+        _ = transaction.HashSetAsync(CacheKeys.Feed(userId), hashEntries);
         foreach (var post in posts)
-            await transaction.ListRightPushAsync(CacheKeys.FeedList(userId), post.Id);
+            _ = transaction.ListRightPushAsync(CacheKeys.FeedList(userId), post.Id);
 
         await transaction.ExecuteAsync();
     }
@@ -249,7 +258,7 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
         await using var connection = await _provider.CreateConnectionAsync();
         var cache = connection.GetDatabase();
 
-        if (!await cache.KeyTouchAsync(CacheKeys.Feed(userId))) 
+        if (!await cache.KeyExistsAsync(CacheKeys.User(userId))) 
             return null;
         
         var feedFromCache = (await cache
@@ -263,6 +272,7 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
         return feedFromCache;
     }
 
+    // TODO cyclic dependency; refactor this
     public async Task InvalidateAsync(IReadOnlyCollection<long> userIds)
     {
         var hashKeys = userIds.Select(CacheKeys.Feed);
