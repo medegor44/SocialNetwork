@@ -2,4 +2,4 @@
 
 namespace SocialNetwork.Services.Commands.DeletePostCommand;
 
-public record DeletePostCommand(long Id) : IRequest;
+public record DeletePostCommand(long Id, long UserId) : IRequest;

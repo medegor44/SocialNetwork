@@ -2,4 +2,4 @@
 
 namespace SocialNetwork.Services.Commands.UpdatePostCommand;
 
-public record UpdatePostCommand(long Id, string Text) : IRequest;
+public record UpdatePostCommand(long Id, long UserId, string Text) : IRequest;

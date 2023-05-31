@@ -45,9 +45,12 @@ public class PostsController : Controller
     public async Task<IResult> UpdateAsync(
         [FromBody] UpdateRequest request, 
         [FromServices] IRequestHandler<UpdatePostCommand> handler,
+        [FromServices] IClaimsStore claimsStore,
         CancellationToken cancellationToken)
     {
-        await handler.HandleAsync(new(request.Id, request.Text), cancellationToken);
+        var userId = claimsStore.FromClaims(HttpContext.User.Claims).GetUserId();
+
+        await handler.HandleAsync(new(request.Id, userId, request.Text), cancellationToken);
         
         return Results.Ok();
     }
@@ -60,9 +63,12 @@ public class PostsController : Controller
     public async Task<IResult> DeleteAsync(
         [FromBody] DeleteRequest request, 
         [FromServices] IRequestHandler<DeletePostCommand> handler,
+        [FromServices] IClaimsStore claimsStore,
         CancellationToken cancellationToken)
     {
-        await handler.HandleAsync(new(request.Id), cancellationToken);
+        var userId = claimsStore.FromClaims(HttpContext.User.Claims).GetUserId();
+        
+        await handler.HandleAsync(new(request.Id, userId), cancellationToken);
         
         return Results.Ok();
     }

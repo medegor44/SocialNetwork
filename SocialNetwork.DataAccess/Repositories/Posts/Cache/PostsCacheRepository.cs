@@ -8,19 +8,11 @@ using StackExchange.Redis;
 
 namespace SocialNetwork.DataAccess.Repositories.Posts.Cache;
 
-public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
+public class PostsCacheRepository : IPostsRepository
 {
     private readonly IRedisProvider _provider;
     private readonly IPostsRepository _postsRepository;
     private readonly IFriendsRepository _friendsRepository;
-
-    private static class CacheKeys
-    {
-        private static string UserEntity => "user";
-        public static string Feed(long userId) => $"{User(userId)}:feed";
-        public static string FeedList(long userId) => $"{Feed(userId)}:list";
-        public static string User(long userId) => $"{UserEntity}:{userId}";
-    }
 
     public PostsCacheRepository(
         IRedisProvider provider, 
@@ -143,13 +135,13 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
         }
     }
 
-    public async Task DeleteAsync(long id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(Post post, CancellationToken cancellationToken)
     {
-        await _postsRepository.DeleteAsync(id, cancellationToken);
+        await _postsRepository.DeleteAsync(post, cancellationToken);
 
         try
         {
-            await DeleteFromFriendsFeed(id, cancellationToken);
+            await DeleteFromFriendsFeed(post, cancellationToken);
         }
         catch
         {
@@ -157,12 +149,12 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
         }
     }
 
-    private async Task DeleteFromFriendsFeed(long id, CancellationToken cancellationToken)
+    private async Task DeleteFromFriendsFeed(Post post, CancellationToken cancellationToken)
     {
         await using var connection = await _provider.CreateConnectionAsync();
         var cache = connection.GetDatabase();
 
-        var user = await _friendsRepository.GetUserByIdAsync(id, cancellationToken);
+        var user = await _friendsRepository.GetUserByIdAsync(post.UserId, cancellationToken);
         var feedRecipientsIds = user?
             .Friends
             .Select(x => x.Id)
@@ -181,9 +173,9 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
 
             _ = transaction.HashDeleteAsync(
                 hashKey, 
-                id.ToString());
+                post.Id.ToString());
 
-            _ = transaction.ListRemoveAsync(feedList, id.ToString());
+            _ = transaction.ListRemoveAsync(feedList, post.Id.ToString());
         }
 
         await transaction.ExecuteAsync();
@@ -270,17 +262,5 @@ public class PostsCacheRepository : IPostsRepository, IPostsCacheInvalidator
             .ToList();
 
         return feedFromCache;
-    }
-
-    // TODO cyclic dependency; refactor this
-    public async Task InvalidateAsync(IReadOnlyCollection<long> userIds)
-    {
-        var hashKeys = userIds.Select(CacheKeys.Feed);
-        var listKeys = userIds.Select(CacheKeys.FeedList);
-
-        await using var connection = await _provider.CreateConnectionAsync();
-        var cache = connection.GetDatabase();
-
-        await cache.KeyDeleteAsync(hashKeys.Concat(listKeys).Select(x => new RedisKey(x)).ToArray());
     }
 }

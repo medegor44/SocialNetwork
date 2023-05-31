@@ -5,7 +5,7 @@ namespace SocialNetwork.Domain.Posts;
 
 public sealed class Post : Entity<long>, IAggregateRoot
 {
-    public Text Text { get; }
+    public Text Text { get; private set; }
     public long UserId { get; }
     public DateTimeOffset CreateDate { get; }
     
@@ -16,6 +16,9 @@ public sealed class Post : Entity<long>, IAggregateRoot
         UserId = userId;
         CreateDate = createDate;
     }
+
+    public void UpdateText(Text text) =>
+        Text = text;
     
     public Post(Text text, long userId)
     {

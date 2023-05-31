@@ -1,4 +1,5 @@
 ﻿using SocialNetwork.Domain.Posts.Repositories;
+using SocialNetwork.Domain.Posts.ValueObjects;
 using SocialNetwork.Services.Abstractions;
 
 namespace SocialNetwork.Services.Commands.DeletePostCommand;
@@ -13,5 +14,5 @@ public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand>
     }
     
     public Task HandleAsync(DeletePostCommand request, CancellationToken cancellationToken) =>
-        _repository.DeleteAsync(request.Id, cancellationToken);
+        _repository.DeleteAsync(new(request.Id, new Text("empty"), request.UserId, DateTimeOffset.UtcNow), cancellationToken);
 }

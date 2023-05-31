@@ -31,12 +31,12 @@ public static class ServiceCollectionExtensions
                 throw new InvalidOperationException("Endpoint should be specified")));
     }
 
-    public static IServiceCollection AddRepositories(this IServiceCollection services)
-    {
-        services.AddScoped<IUserRepository, UserRepository>();
+    public static IServiceCollection AddRepositories(this IServiceCollection services) =>
         services
+            .AddScoped<IUserRepository, UserRepository>()
             .AddScoped<ICitiesRepository, CitiesRepository>()
             .AddScoped<IFriendsRepository, FriendsRepository>()
+            .AddScoped<IPostsCacheInvalidator, PostsCacheInvalidator>()
             .AddScoped<PostsRepository>()
             .AddScoped<PostsCacheRepository>(p => new PostsCacheRepository(
                 p.GetRequiredService<IRedisProvider>(),
@@ -44,7 +44,4 @@ public static class ServiceCollectionExtensions
                 p.GetRequiredService<IFriendsRepository>()
             ))
             .AddScoped<IPostsRepository>(p => p.GetRequiredService<PostsCacheRepository>());
-        
-        return services;
-    }
 }

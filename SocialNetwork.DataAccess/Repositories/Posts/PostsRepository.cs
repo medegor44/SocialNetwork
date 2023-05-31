@@ -74,7 +74,7 @@ WHERE "Id" = @{nameof(PostDbDto.Id)}
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(long id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(Post post, CancellationToken cancellationToken)
     {
         var sql = $"""
 DELETE FROM "{PostsTableName}"
@@ -86,7 +86,7 @@ WHERE "Id" = @{nameof(PostDbDto.Id)}
 
         var dto = new PostDbDto
         {
-            Id = id
+            Id = post.Id
         };
 
         command.Parameters.AddWithValue(nameof(PostDbDto.Id), dto.Id);
