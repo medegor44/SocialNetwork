@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
 using SocialNetwork;
+using SocialNetwork.Controllers.Auth;
 using SocialNetwork.DataAccess.Extensions;
 using SocialNetwork.Middleware;
 using SocialNetwork.Migrations;
@@ -30,7 +32,7 @@ else
         .AddPasswordHashingService()
         .AddLogging()
         .AddControllers();
-
+    
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(opt =>
         {
@@ -47,8 +49,38 @@ else
         });
     
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddSwaggerGen(opt =>
+    {
+        opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+        {
+            In = ParameterLocation.Header,
+            Description = "Enter token returned from Login",
+            Name = "Authorize",
+            Type = SecuritySchemeType.Http,
+            BearerFormat = "JWT",
+            Scheme = "bearer"
+        });
+        
+        opt.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        {
+            {
+                new OpenApiSecurityScheme()
+                {
+                    Reference = new()
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string []{}
+            }
+        });
+    });
 
+    builder.Services.AddScoped<IClaimsStore, ClaimsStore>();
+
+    builder.Services.AddCache(builder.Configuration);
+    
     var app = builder.Build();
 
     if (app.Environment.IsDevelopment())

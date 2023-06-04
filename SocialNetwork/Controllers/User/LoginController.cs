@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using SocialNetwork.Controllers.Auth;
 using SocialNetwork.Controllers.Common;
 using SocialNetwork.Controllers.Requests;
 using SocialNetwork.Services.Abstractions;
@@ -22,6 +22,7 @@ public class LoginController : Controller
     public async Task<IResult> Post(
         LoginRequest request, 
         [FromServices] IRequestHandler<AuthenticateQuery, AuthenticateQueryResponse> handler, 
+        [FromServices] IClaimsStore claimsStore,
         CancellationToken cancellationToken)
     {
         AuthenticateQueryResponse authResponse;
@@ -43,15 +44,12 @@ public class LoginController : Controller
         if (!authResponse.Succeeded)
             return Results.BadRequest("Invalid id or password");
 
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.Name, request.Id.ToString())
-        };
+        var store = claimsStore.AddUserId(request.Id);
 
         var token = new JwtSecurityToken(
             issuer: AuthOptions.Issuer,
             audience: AuthOptions.Audience,
-            claims: claims,
+            claims: store.Claims,
             expires: DateTime.UtcNow.AddDays(1),
             signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(),
                 SecurityAlgorithms.HmacSha256));

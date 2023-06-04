@@ -64,6 +64,23 @@ RETURNING "Id"
 
     public async Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
+        var dto = await GetUserDtoByIdAsync(id, cancellationToken);
+
+        if (dto is null)
+            return null;
+
+        return new User(
+            dto.Id, 
+            new(dto.FirstName ?? string.Empty), 
+            new(dto.SecondName ?? string.Empty), 
+            new(dto.Age), 
+            new(dto.Biography ?? string.Empty), 
+            new(dto.CityId, dto.CityName ?? string.Empty),
+            new(dto.Password ?? string.Empty, dto.Salt ?? string.Empty));
+    }
+
+    private async Task<UserDbDto?> GetUserDtoByIdAsync(long id, CancellationToken cancellationToken)
+    {
         var sql = $"""
 SELECT 
     u."Id", 
@@ -76,7 +93,8 @@ SELECT
     u."Salt",
     c."Name" 
 FROM
-    "{UsersTableName}" u JOIN "{CitiesTableName}" c ON u."CityId" = c."Id"
+    "{UsersTableName}" u 
+    JOIN "{CitiesTableName}" c ON u."CityId" = c."Id"
 WHERE
     u."Id" = @{nameof(UserDbDto.Id)}
 """;
@@ -101,15 +119,7 @@ WHERE
             Salt = reader.GetString(7),
             CityName = reader.GetString(8)
         };
-
-        return new User(
-            dto.Id, 
-            new(dto.FirstName), 
-            new(dto.SecondName), 
-            new(dto.Age), 
-            new(dto.Biography), 
-            new(dto.CityId, dto.CityName),
-            new(dto.Password, dto.Salt));
+        return dto;
     }
 
     public async Task<IReadOnlyCollection<User>> GetByFilterAsync(UserFilter filter, CancellationToken cancellationToken)
@@ -122,7 +132,7 @@ WHERE
             Offset = filter.Pagination.Offset
         };
 
-        var conditions = new List<string>() {"TRUE"};
+        var conditions = new List<string> {"TRUE"};
         if (filter.FirstName is not null)
             conditions.Add($"""LOWER(u."FirstName") LIKE @{nameof(filterDbDto.FirstName)}""");
         if (filter.SecondName is not null)

@@ -31,6 +31,7 @@ public class SeedUsers : Migration
 
     public override void Up()
     {
+        return;
         var list = Read().ToList();
         var enumLines = list.AsEnumerable();
 
