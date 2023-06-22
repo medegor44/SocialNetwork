@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using SocialNetwork.Services.Abstractions;
 using SocialNetwork.Services.Commands.CreateFriendsCommand;
 using SocialNetwork.Services.Commands.CreatePostCommand;
@@ -7,6 +8,7 @@ using SocialNetwork.Services.Commands.DeletePostCommand;
 using SocialNetwork.Services.Commands.RemoveFriendsCommand;
 using SocialNetwork.Services.Commands.UpdatePostCommand;
 using SocialNetwork.Services.CommonServices;
+using SocialNetwork.Services.Events;
 using SocialNetwork.Services.Queries;
 using SocialNetwork.Services.Queries.AuthenticationQuery;
 using SocialNetwork.Services.Queries.GetPostsFeed;
@@ -17,8 +19,10 @@ namespace SocialNetwork.Services.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddHandlers(this IServiceCollection services)
+    public static IServiceCollection AddHandlers(this IServiceCollection services, ConfigurationManager section)
     {
+        services.AddScoped<IPostCreatedNotificationSender, PostCreatedNotificationEventSender>();
+        
         services.AddScoped<IRequestHandler<CreateUserCommand, CreateUserCommandResponse>, CreateUserCommandHandler>();
         services.AddScoped<IRequestHandler<AuthenticateQuery, AuthenticateQueryResponse>, AuthenticateQueryHandler>();
         services.AddScoped<IRequestHandler<GetUserByIdQuery, GetUserByIdQueryResponse>, GetUserByIdQueryHandler>();

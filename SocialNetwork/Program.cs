@@ -1,3 +1,4 @@
+using FluentMigrator.Runner.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using SocialNetwork;
@@ -6,6 +7,7 @@ using SocialNetwork.DataAccess.Extensions;
 using SocialNetwork.Middleware;
 using SocialNetwork.Migrations;
 using SocialNetwork.Postgres;
+using SocialNetwork.Services.Events.Options;
 using SocialNetwork.Services.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +30,7 @@ else
     builder.Services
         .AddPostgres()
         .AddRepositories()
-        .AddHandlers()
+        .AddHandlers(builder.Configuration)
         .AddPasswordHashingService()
         .AddLogging()
         .AddControllers();
@@ -80,6 +82,10 @@ else
     builder.Services.AddScoped<IClaimsStore, ClaimsStore>();
 
     builder.Services.AddCache(builder.Configuration);
+
+    builder.Services.Configure<ConnectionOptions>(builder.Configuration.GetSection(ConnectionOptions.Section));
+    builder.Services.Configure<FeedNotificationsOptions>(
+        builder.Configuration.GetSection(FeedNotificationsOptions.Section));
     
     var app = builder.Build();
 
