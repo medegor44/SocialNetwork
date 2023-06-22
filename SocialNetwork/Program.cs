@@ -30,7 +30,7 @@ else
     builder.Services
         .AddPostgres()
         .AddRepositories()
-        .AddHandlers(builder.Configuration)
+        .AddHandlers()
         .AddPasswordHashingService()
         .AddLogging()
         .AddControllers();

@@ -19,7 +19,7 @@ namespace SocialNetwork.Services.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddHandlers(this IServiceCollection services, ConfigurationManager section)
+    public static IServiceCollection AddHandlers(this IServiceCollection services)
     {
         services.AddScoped<IPostCreatedNotificationSender, PostCreatedNotificationEventSender>();
         
