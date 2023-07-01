@@ -6,6 +6,7 @@ using Npgsql;
 using SocialNetwork.DataAccess.Redis;
 using SocialNetwork.DataAccess.Repositories;
 using SocialNetwork.DataAccess.Repositories.Posts.Cache;
+using SocialNetwork.DataAccess.Repositories.Posts.Redis;
 using SocialNetwork.Domain.Dictionaries;
 using SocialNetwork.Domain.Friends.Repositories;
 using SocialNetwork.Domain.Posts.Repositories;
@@ -37,11 +38,5 @@ public static class ServiceCollectionExtensions
             .AddScoped<ICitiesRepository, CitiesRepository>()
             .AddScoped<IFriendsRepository, FriendsRepository>()
             .AddScoped<IPostsCacheInvalidator, PostsCacheInvalidator>()
-            .AddScoped<PostsRepository>()
-            .AddScoped<PostsCacheRepository>(p => new PostsCacheRepository(
-                p.GetRequiredService<IRedisProvider>(),
-                p.GetRequiredService<PostsRepository>(),
-                p.GetRequiredService<IFriendsRepository>()
-            ))
-            .AddScoped<IPostsRepository>(p => p.GetRequiredService<PostsCacheRepository>());
+            .AddScoped<IPostsRepository, PostsRedisRepository>();
 }
