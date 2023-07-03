@@ -1,16 +1,15 @@
-﻿using System.Text.Json;
-using SocialNetwork.DataAccess.Redis;
+﻿using SocialNetwork.DataAccess.Redis;
 using SocialNetwork.DataAccess.Repositories.Posts.Cache;
 using SocialNetwork.Domain.Friends.Repositories;
 using SocialNetwork.Domain.Posts;
 using SocialNetwork.Domain.Posts.Repositories;
 using SocialNetwork.Domain.Posts.ValueObjects;
-using StackExchange.Redis;
 
 namespace SocialNetwork.DataAccess.Repositories.Posts.Redis;
 
 public class PostsRedisRepository : IPostsRepository
 {
+    private const int DatabaseId = 0;
     private readonly IRedisProvider _provider;
     private readonly IFriendsRepository _friendsRepository;
 
@@ -25,7 +24,7 @@ public class PostsRedisRepository : IPostsRepository
     public async Task<Post> CreateAsync(Post post, CancellationToken cancellationToken)
     {
         await using var connection = await _provider.CreateConnectionAsync();
-        var database = connection.GetDatabase();
+        var database = connection.GetDatabase(DatabaseId);
 
         var id = await database.GetPostId();
 
@@ -47,7 +46,7 @@ public class PostsRedisRepository : IPostsRepository
     public async Task UpdateAsync(Post updatedPost, CancellationToken cancellationToken)
     {
         await using var connection = await _provider.CreateConnectionAsync();
-        var database = connection.GetDatabase();
+        var database = connection.GetDatabase(DatabaseId);
 
         var dto = new PostCacheDto()
         {
@@ -63,7 +62,7 @@ public class PostsRedisRepository : IPostsRepository
     public async Task DeleteAsync(Post post, CancellationToken cancellationToken)
     {
         await using var connection = await _provider.CreateConnectionAsync();
-        var database = connection.GetDatabase();
+        var database = connection.GetDatabase(DatabaseId);
         
         await database.DeletePost(post.Id, post.UserId);
     }
@@ -71,7 +70,7 @@ public class PostsRedisRepository : IPostsRepository
     public async Task<IReadOnlyCollection<Post>> GetByIdsAsync(IReadOnlyCollection<long> ids, CancellationToken cancellationToken)
     {
         await using var connection = await _provider.CreateConnectionAsync();
-        var database = connection.GetDatabase();
+        var database = connection.GetDatabase(DatabaseId);
 
         var dtos = ids.Select(x => database.GetById(x));
 
@@ -81,8 +80,43 @@ public class PostsRedisRepository : IPostsRepository
             .ToList();
     }
 
-    public Task<Feed> GetFeedAsync(FeedOptions options, CancellationToken cancellationToken)
+    public async Task<Feed> GetFeedAsync(FeedOptions options, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var friends = await _friendsRepository.GetUserByIdAsync(options.FeedRecipientUserId, cancellationToken);
+
+        if (friends is null)
+            return new Feed(ArraySegment<Post>.Empty, 0);
+
+        var userIds = friends
+            .Friends
+            .Select(x => x.Id)
+            .Concat(new[] {options.FeedRecipientUserId})
+            .ToList();
+
+        await using var connection = await _provider.CreateConnectionAsync();
+
+        var database = connection.GetDatabase(DatabaseId);
+        var postsIds = (await Task.WhenAll(
+                userIds
+                    .Select(userId =>
+                        database.GetUserPosts(userId, 0, Feed.MaxPosts))
+            ))
+            .SelectMany(x => x)
+            .OrderDescending()
+            .Take(Feed.MaxPosts)
+            .ToList();
+
+        var feedPosts = (await Task.WhenAll(
+                postsIds
+                    .Select(x => database.GetById(x)))
+            )
+            .Where(x => x != null)
+            .OrderByDescending(x => x!.CreateDate)
+            .Skip(options.Offset)
+            .Take(options.Limit)
+            .Select(x => new Post(x.Id, new(x.Text!), x.UserId, x.CreateDate))
+            .ToList();
+
+        return new(feedPosts, postsIds.Count);
     }
 }

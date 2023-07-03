@@ -42,4 +42,18 @@ public static class RedisDatabaseExtensions
 
         return JsonSerializer.Deserialize<PostCacheDto>(result.ToString()!);
     }
+
+    public static async Task<IReadOnlyCollection<long>> GetUserPosts(this IDatabase database, long userId, int start,
+        int stop)
+    {
+        var result = await database.ExecuteAsync("FCALL", "get_user_posts", 3, userId, start, stop);
+        
+        if (result.IsNull)
+            return ArraySegment<long>.Empty;
+        
+        if (result.Type is not (ResultType.BulkString or ResultType.SimpleString))
+            throw new Exception("Invalid redis type");
+
+        return JsonSerializer.Deserialize<List<long>>(result.ToString()!)!;
+    }
 }

@@ -10,6 +10,7 @@ namespace SocialNetwork.DataAccess.Repositories.Posts.Cache;
 
 public class PostsCacheRepository : IPostsRepository
 {
+    private const int DatabaseId = 1;
     private readonly IRedisProvider _provider;
     private readonly IPostsRepository _postsRepository;
     private readonly IFriendsRepository _friendsRepository;
@@ -50,7 +51,7 @@ public class PostsCacheRepository : IPostsRepository
             .Concat(new[] {user.Id}) ?? ArraySegment<long>.Empty;
 
         await using var connection = await _provider.CreateConnectionAsync();
-        var cache = connection.GetDatabase();
+        var cache = connection.GetDatabase(DatabaseId);
         var cacheDto = new PostCacheDto()
         {
             UserId = createdPost.UserId,
@@ -111,7 +112,7 @@ public class PostsCacheRepository : IPostsRepository
             .Concat(new[] {user.Id}) ?? ArraySegment<long>.Empty;
 
         await using var connection = await _provider.CreateConnectionAsync();
-        var cache = connection.GetDatabase();
+        var cache = connection.GetDatabase(DatabaseId);
         var cacheDto = new PostCacheDto()
         {
             Id = updatedPost.Id,
@@ -152,7 +153,7 @@ public class PostsCacheRepository : IPostsRepository
     private async Task DeleteFromFriendsFeed(Post post, CancellationToken cancellationToken)
     {
         await using var connection = await _provider.CreateConnectionAsync();
-        var cache = connection.GetDatabase();
+        var cache = connection.GetDatabase(DatabaseId);
 
         var user = await _friendsRepository.GetUserByIdAsync(post.UserId, cancellationToken);
         var feedRecipientsIds = user?
@@ -222,7 +223,7 @@ public class PostsCacheRepository : IPostsRepository
     private async Task SaveToCache(IReadOnlyCollection<Post> posts, long userId)
     {
         await using var connection = await _provider.CreateConnectionAsync();
-        var cache = connection.GetDatabase();
+        var cache = connection.GetDatabase(DatabaseId);
 
         var hashEntries = posts
             .Select(p => new PostCacheDto()
@@ -248,7 +249,7 @@ public class PostsCacheRepository : IPostsRepository
     private async Task<List<Post>?> GetPostsFromCacheOrDefaultAsync(long userId)
     {
         await using var connection = await _provider.CreateConnectionAsync();
-        var cache = connection.GetDatabase();
+        var cache = connection.GetDatabase(DatabaseId);
 
         if (!await cache.KeyExistsAsync(CacheKeys.User(userId))) 
             return null;
