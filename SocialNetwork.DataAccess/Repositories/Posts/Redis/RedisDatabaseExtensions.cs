@@ -6,9 +6,6 @@ namespace SocialNetwork.DataAccess.Repositories.Posts.Redis;
 
 public static class RedisDatabaseExtensions
 {
-    public static async Task<RedisResult> FunctionCall(this IDatabase database, string functionName, params object[] args) => 
-        await database.ExecuteAsync("FCALL", functionName, args);
-
     public static async Task<long> GetPostId(this IDatabase database)
     {
         var id = await database.ExecuteAsync("FCALL", "get_post_id", 0);
@@ -19,9 +16,15 @@ public static class RedisDatabaseExtensions
         return long.Parse(id.ToString()!);
     }
 
-    public static async Task SavePost(this IDatabase database, PostCacheDto dto)
+    public static async Task CreatePost(this IDatabase database, PostCacheDto dto)
     {
-        await database.ExecuteAsync("FCALL", "save_post", 3, JsonSerializer.Serialize(dto), dto.UserId.ToString(),
+        await database.ExecuteAsync("FCALL", "create_post", 3, JsonSerializer.Serialize(dto), dto.UserId.ToString(),
+            dto.Id.ToString());
+    }
+    
+    public static async Task UpdatePost(this IDatabase database, PostCacheDto dto)
+    {
+        await database.ExecuteAsync("FCALL", "update_post", 3, JsonSerializer.Serialize(dto), dto.UserId.ToString(),
             dto.Id.ToString());
     }
 
@@ -51,9 +54,11 @@ public static class RedisDatabaseExtensions
         if (result.IsNull)
             return ArraySegment<long>.Empty;
         
-        if (result.Type is not (ResultType.BulkString or ResultType.SimpleString))
+        if (result.Type is not ResultType.MultiBulk)
             throw new Exception("Invalid redis type");
 
-        return JsonSerializer.Deserialize<List<long>>(result.ToString()!)!;
+        var redisResults = (RedisResult[])result!;
+
+        return redisResults.Select(x => long.Parse(x.ToString()!)).ToList();
     }
 }

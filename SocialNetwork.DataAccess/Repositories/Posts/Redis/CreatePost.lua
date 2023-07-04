@@ -57,26 +57,18 @@ local function CreatePost(keys, argv)
     local userId = keys[2]
     local postId = keys[3]
 
-    redis.call('MULTI')
-    
     redis.call('HSET', UserPosts(userId), postId, serializedPost)
     SaveUserPostLink(postId, userId)
     PushToPostsList(postId, userId)
-    
-    redis.call('EXEC')
 end
 
 local function DeletePost(keys, argv)
     local userId = keys[1]
     local postId = keys[2]
     
-    redis.call('MULTI')
-    
     DeleteUserPostLink(postId)
     PopFromPostsList(postId, userId)
     redis.call('HDEL', UserPosts(userId), postId)
-    
-    redis.call('EXEC')
 end
 
 local function GetPostById(keys, argv)

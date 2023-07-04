@@ -36,7 +36,7 @@ public class PostsRedisRepository : IPostsRepository
             UserId = post.UserId
         };
 
-        await database.SavePost(dto);
+        await database.CreatePost(dto);
 
         var createdPost = new Post(dto.Id, post.Text, post.UserId, post.CreateDate);
 
@@ -56,7 +56,7 @@ public class PostsRedisRepository : IPostsRepository
             UserId = updatedPost.UserId
         };
         
-        await database.SavePost(dto);
+        await database.UpdatePost(dto);
     }
 
     public async Task DeleteAsync(Post post, CancellationToken cancellationToken)
@@ -92,7 +92,7 @@ public class PostsRedisRepository : IPostsRepository
             .Select(x => x.Id)
             .Concat(new[] {options.FeedRecipientUserId})
             .ToList();
-
+        
         await using var connection = await _provider.CreateConnectionAsync();
 
         var database = connection.GetDatabase(DatabaseId);
