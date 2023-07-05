@@ -38,5 +38,9 @@ public static class ServiceCollectionExtensions
             .AddScoped<ICitiesRepository, CitiesRepository>()
             .AddScoped<IFriendsRepository, FriendsRepository>()
             .AddScoped<IPostsCacheInvalidator, PostsCacheInvalidator>()
-            .AddScoped<IPostsRepository, PostsRedisRepository>();
+            .AddScoped<PostsRedisRepository>()
+            .AddScoped<IPostsRepository>(p => new PostsCacheRepository(
+                p.GetRequiredService<IRedisProvider>(),
+                p.GetRequiredService<PostsRedisRepository>(),
+                p.GetRequiredService<IFriendsRepository>()));
 }
