@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddHandlers(this IServiceCollection services)
     {
-        services.AddScoped<IPostCreatedNotificationSender, PostCreatedNotificationEventSender>();
+        services.AddScoped<IPostCreatedNotificationSender>(_ => null!);
         
         services.AddScoped<IRequestHandler<CreateUserCommand, CreateUserCommandResponse>, CreateUserCommandHandler>();
         services.AddScoped<IRequestHandler<AuthenticateQuery, AuthenticateQueryResponse>, AuthenticateQueryHandler>();

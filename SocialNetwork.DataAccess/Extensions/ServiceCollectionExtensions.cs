@@ -9,6 +9,7 @@ using SocialNetwork.DataAccess.Repositories.Posts.Cache;
 using SocialNetwork.DataAccess.Repositories.Posts.Redis;
 using SocialNetwork.Domain.Dictionaries;
 using SocialNetwork.Domain.Friends.Repositories;
+using SocialNetwork.Domain.Messages;
 using SocialNetwork.Domain.Posts.Repositories;
 using SocialNetwork.Domain.Users.Repositories;
 
@@ -38,5 +39,6 @@ public static class ServiceCollectionExtensions
             .AddScoped<ICitiesRepository, CitiesRepository>()
             .AddScoped<IFriendsRepository, FriendsRepository>()
             .AddScoped<IPostsCacheInvalidator>(_ => null!)
-            .AddScoped<IPostsRepository, PostsRepository>();
+            .AddScoped<IPostsRepository, PostsRepository>()
+            .AddScoped<IMessageRepository, MessagesRepository>();
 }

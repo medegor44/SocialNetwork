@@ -11,9 +11,9 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Creat
 {
     private readonly IPostsRepository _repository;
     private readonly IFriendsRepository _friendsRepository;
-    private readonly IPostCreatedNotificationSender _sender;
+    private readonly IPostCreatedNotificationSender? _sender;
 
-    public CreatePostCommandHandler(IPostsRepository repository, IFriendsRepository friendsRepository, IPostCreatedNotificationSender sender)
+    public CreatePostCommandHandler(IPostsRepository repository, IFriendsRepository friendsRepository, IPostCreatedNotificationSender? sender)
     {
         _repository = repository;
         _friendsRepository = friendsRepository;
@@ -34,11 +34,11 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Creat
         var user = await _friendsRepository.GetUserByIdAsync(request.UserId, cancellationToken);
 
         foreach (var friend in user?.Friends ?? ArraySegment<Friend>.Empty)
-            _sender.Send(new(post.Id, post.Text.Value, post.UserId, friend.Id), friend.Id);
+            _sender?.Send(new(post.Id, post.Text.Value, post.UserId, friend.Id), friend.Id);
     }
 
     public void Dispose()
     {
-        _sender.Dispose();
+        _sender?.Dispose();
     }
 }

@@ -35,6 +35,7 @@ VALUES (
 
         await using var connection = _source.CreateConnection();
         await using var command = new NpgsqlCommand(sql, connection);
+        
         command.Parameters.AddWithValue(nameof(dto.From), dto.From);
         command.Parameters.AddWithValue(nameof(dto.To), dto.To);
         command.Parameters.AddWithValue(nameof(dto.CreateDate), dto.CreateDate);
