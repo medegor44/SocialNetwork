@@ -81,8 +81,6 @@ else
 
     builder.Services.AddScoped<IClaimsStore, ClaimsStore>();
 
-    builder.Services.AddCache(builder.Configuration);
-
     builder.Services.Configure<ConnectionOptions>(builder.Configuration.GetSection(ConnectionOptions.Section));
     builder.Services.Configure<FeedNotificationsOptions>(
         builder.Configuration.GetSection(FeedNotificationsOptions.Section));

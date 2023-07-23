@@ -63,7 +63,7 @@ public class UserController : Controller
         {
             return Results.NotFound(e.Message);
         }
-
+        
         return Results.Ok(new GetUserResponseDto(
             response.UserDto.Id,
             response.UserDto.FirstName,

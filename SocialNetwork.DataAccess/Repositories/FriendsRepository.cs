@@ -10,7 +10,7 @@ namespace SocialNetwork.DataAccess.Repositories;
 public class FriendsRepository : IFriendsRepository
 {
     private readonly NpgsqlDataSource _source;
-    private readonly IPostsCacheInvalidator _invalidator;
+    private readonly IPostsCacheInvalidator? _invalidator;
     private const string FriendsTableName = "Friends";
     private const string UsersTableName = "Users";
 
@@ -110,7 +110,7 @@ VALUES {values}
         await using var command = new NpgsqlCommand(sql, connection);
         await command.ExecuteNonQueryAsync(cancellationToken);
         
-        await _invalidator.InvalidateAsync(newFriends.Select(x => x.Id).Concat(new[]{userId}).ToList());
+        await (_invalidator?.InvalidateAsync(newFriends.Select(x => x.Id).Concat(new[]{userId}).ToList()) ?? Task.CompletedTask);
     }
 
     private async Task RemoveFriendsAsync(IReadOnlyCollection<Friend> removedFriends, long userId,
@@ -132,7 +132,7 @@ WHERE
 
         await command.ExecuteNonQueryAsync(cancellationToken);
         
-        await _invalidator.InvalidateAsync(removedFriends.Select(x => x.Id).Concat(new[]{userId}).ToList());
+        await (_invalidator?.InvalidateAsync(removedFriends.Select(x => x.Id).Concat(new[]{userId}).ToList()) ?? Task.CompletedTask);
     }
 
     public async Task UpdateUserAsync(User oldUser, User updatedUser, CancellationToken cancellationToken)
