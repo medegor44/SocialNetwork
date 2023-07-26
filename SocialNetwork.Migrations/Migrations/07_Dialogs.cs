@@ -9,13 +9,14 @@ public class Dialogs : Migration
     public override void Up()
     {
         Create.Table("Dialogs")
-            .WithColumn("Id").AsCustom("BIGSERIAL").PrimaryKey()
-            .WithColumn("From").AsInt64().ForeignKey("Users", "Id")
-            .WithColumn("To").AsInt64().ForeignKey("Users", "Id")
+            .WithColumn("From").AsInt64()
+            .WithColumn("To").AsInt64()
             .WithColumn("CreateDate").AsDateTimeOffset()
             .WithColumn("Text").AsString();
-        
-        Execute.Sql("SELECT create_distributed_table('Dialogs', 'From');");
+
+        Execute.Sql(@"SELECT create_reference_table('""Cities""');");
+        Execute.Sql(@"SELECT create_reference_table('""Users""');");
+        Execute.Sql(@"SELECT create_distributed_table('""Dialogs""', 'From');");
     }
 
     public override void Down()

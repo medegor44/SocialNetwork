@@ -6,6 +6,7 @@ using SocialNetwork.Services.Commands.CreatePostCommand;
 using SocialNetwork.Services.Commands.CreateUserCommand;
 using SocialNetwork.Services.Commands.DeletePostCommand;
 using SocialNetwork.Services.Commands.RemoveFriendsCommand;
+using SocialNetwork.Services.Commands.SendMessageCommand;
 using SocialNetwork.Services.Commands.UpdatePostCommand;
 using SocialNetwork.Services.CommonServices;
 using SocialNetwork.Services.Events;
@@ -14,6 +15,7 @@ using SocialNetwork.Services.Queries.AuthenticationQuery;
 using SocialNetwork.Services.Queries.GetPostsFeed;
 using SocialNetwork.Services.Queries.GetUserByFilterQuery;
 using SocialNetwork.Services.Queries.GetUserByIdQuery;
+using SocialNetwork.Services.Queries.ListDialogQuery;
 
 namespace SocialNetwork.Services.Extensions;
 
@@ -38,6 +40,11 @@ public static class ServiceCollectionExtensions
             .AddScoped<IRequestHandler<DeletePostCommand>, DeletePostCommandHandler>()
             .AddScoped<IRequestHandler<GetPostsFeedQuery, GetPostsFeedQueryResponse>, GetPostsFeedQueryHandler>()
             .AddScoped<IRequestHandler<GetPostsByIdQuery, GetPostsByIdQueryResponse>, GetPostsByIdsQueryHandler>();
+
+        services
+            .AddScoped<IRequestHandler<SendMessageCommand>, SendMessageCommandHandler>()
+            .AddScoped<IRequestHandler<ListDialogQuery, ListDialogQueryResponse>, ListDialogQueryHandler>();
+        
         return services;
     }
 
