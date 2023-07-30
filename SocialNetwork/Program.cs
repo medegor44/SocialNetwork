@@ -28,8 +28,9 @@ if (args.Contains("migrate"))
 else
 {
     builder.Services
+        .AddHttpContextAccessor()
         .AddPostgres()
-        .AddRepositories()
+        .AddRepositories(builder.Configuration)
         .AddHandlers()
         .AddPasswordHashingService()
         .AddLogging()
@@ -93,6 +94,7 @@ else
         app.UseSwaggerUI();
     }
 
+    app.UseMiddleware<CorrelationIdGeneratorMiddleware>();
     app.UseMiddleware<BadStatusCodesHandlingMiddleware>();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 

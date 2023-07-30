@@ -1,8 +1,12 @@
 ﻿using System.Data.Common;
+using Grpc.Core;
+using Grpc.Core.Interceptors;
+using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using SocialNetwork.DataAccess.Grpc;
 using SocialNetwork.DataAccess.Redis;
 using SocialNetwork.DataAccess.Repositories;
 using SocialNetwork.DataAccess.Repositories.Posts.Cache;
@@ -34,8 +38,26 @@ public static class ServiceCollectionExtensions
                 throw new InvalidOperationException("Endpoint should be specified")));
     }
 
-    public static IServiceCollection AddRepositories(this IServiceCollection services) =>
-        services
+    public static IServiceCollection AddRepositories(this IServiceCollection services, IConfiguration configuration)
+    {
+        var host = configuration
+                       .GetSection("MessagingServiceOptions")
+                       .Value ??
+                   throw new InvalidOperationException("Host of messaging service should be specified");
+
+        services.AddGrpc();
+        services.AddSingleton<CorrelationIdInterceptor>();
+        services.AddSingleton<ChannelBase>(p =>
+        {
+            var grpcChannel = GrpcChannel.ForAddress(host);
+            grpcChannel.Intercept(p.GetRequiredService<CorrelationIdInterceptor>());
+
+            return grpcChannel;
+        });
+        
+        services.AddScoped<MessagingService.Proto.MessagingService.MessagingServiceClient>();
+        
+        return services
             .AddScoped<IUserRepository, UserRepository>()
             .AddScoped<ICitiesRepository, CitiesRepository>()
             .AddScoped<IFriendsRepository, FriendsRepository>()
@@ -43,4 +65,5 @@ public static class ServiceCollectionExtensions
             .AddScoped<IPostsRepository, PostsRepository>()
             .AddScoped<IMessageRepository, MessagesRepository>()
             .AddScoped<IDialogsRepository, DialogsRepository>();
+    }
 }

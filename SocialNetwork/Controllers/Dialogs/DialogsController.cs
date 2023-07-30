@@ -28,8 +28,12 @@ public class DialogsController : Controller
         [FromServices] IRequestHandler<ListDialogQuery, ListDialogQueryResponse> handler,
         CancellationToken cancellationToken)
     {
+        var correlationId = Guid.NewGuid();
+        if (HttpContext.Request.Headers.TryGetValue("X-Correlation-Id", out var id))
+            correlationId = Guid.Parse(id);
+        
         var sender = new ClaimsStore().FromClaims(HttpContext.User.Claims).GetUserId();
-        var response = await handler.HandleAsync(new(sender, userId), cancellationToken);
+        var response = await handler.HandleAsync(new(sender, userId, correlationId), cancellationToken);
 
         return response.Mmessages.Select(m => new GetMessageDto()
         {
