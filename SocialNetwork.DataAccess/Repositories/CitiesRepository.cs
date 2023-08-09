@@ -2,17 +2,18 @@
 using SocialNetwork.DataAccess.DbDto;
 using SocialNetwork.Domain.Dictionaries;
 using SocialNetwork.Domain.Dictionaries.Entities;
+using SocialNetwork.Postgres;
 
 namespace SocialNetwork.DataAccess.Repositories;
 
 public class CitiesRepository : ICitiesRepository
 {
-    private readonly NpgsqlDataSource _dataSource;
+    private readonly IConnectionFactory _connectionFactory;
     private const string TableName = "Cities";
     
-    public CitiesRepository(NpgsqlDataSource dataSource)
+    public CitiesRepository(IConnectionFactory connectionFactory)
     {
-        _dataSource = dataSource;
+        _connectionFactory = connectionFactory;
     }
     
     public async Task<DictionaryItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -27,7 +28,7 @@ WHERE
     "Id" = @{nameof(DictionaryItemDbDto.Id)}
 """;
 
-        await using var connection = _dataSource.CreateConnection();
+        await using var connection = _connectionFactory.GetSync();
         await using var query = new NpgsqlCommand(sql, connection);
 
         query.Parameters.AddWithValue(nameof(DictionaryItemDbDto.Id), id);
@@ -58,7 +59,7 @@ WHERE
     "Name" ILIKE @{nameof(DictionaryItemDbDto.Name)}
 """;
 
-        await using var connection = _dataSource.CreateConnection();
+        await using var connection = _connectionFactory.GetSync();
         await using var query = new NpgsqlCommand(sql, connection);
 
         query.Parameters.AddWithValue(nameof(DictionaryItemDbDto.Name), name);

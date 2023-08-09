@@ -4,18 +4,19 @@ using SocialNetwork.DataAccess.Exceptions;
 using SocialNetwork.Domain.Posts;
 using SocialNetwork.Domain.Posts.Repositories;
 using SocialNetwork.Domain.Posts.ValueObjects;
+using SocialNetwork.Postgres;
 
 namespace SocialNetwork.DataAccess.Repositories;
 
 public class PostsRepository : IPostsRepository
 {
-    private readonly NpgsqlDataSource _source;
+    private readonly IConnectionFactory _connectionFactory;
     private const string PostsTableName = "Posts";
     private const string FriendsTableName = "Friends";
     
-    public PostsRepository(NpgsqlDataSource source)
+    public PostsRepository(IConnectionFactory connectionFactory)
     {
-        _source = source;
+        _connectionFactory = connectionFactory;
     }
     
     public async Task<Post> CreateAsync(Post post, CancellationToken cancellationToken)
@@ -26,7 +27,7 @@ VALUES (@{nameof(PostDbDto.UserId)}, @{nameof(PostDbDto.Text)}, @{nameof(PostDbD
 RETURNING "Id"
 """;
 
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetMaster();
         await using var command = new NpgsqlCommand(sql, connection);
         var createDate = DateTimeOffset.UtcNow;
         
@@ -57,7 +58,7 @@ SET "Text" = @{nameof(PostDbDto.Text)}
 WHERE "Id" = @{nameof(PostDbDto.Id)}
 """;
 
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetMaster();
         await using var command = new NpgsqlCommand(sql, connection);
         
         var dto = new PostDbDto
@@ -81,7 +82,7 @@ DELETE FROM "{PostsTableName}"
 WHERE "Id" = @{nameof(PostDbDto.Id)}
 """;
 
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetMaster();
         await using var command = new NpgsqlCommand(sql, connection);
 
         var dto = new PostDbDto
@@ -110,7 +111,7 @@ WHERE
     "Id" = ANY(ARRAY[@ids]::INT8[])
 """;
 
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetSync();
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue("Ids", ids.ToList());
 
@@ -183,7 +184,7 @@ LIMIT @Limit
 OFFSET @Offset
 """;
 
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetSync();
         await using var command = new NpgsqlCommand(sql, connection);
 
         command.Parameters.AddWithValue("UserId", options.FeedRecipientUserId);

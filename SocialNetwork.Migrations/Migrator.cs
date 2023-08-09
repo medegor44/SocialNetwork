@@ -3,6 +3,7 @@ using FluentMigrator.Runner;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SocialNetwork.Migrations.Migrations;
+using SocialNetwork.Postgres;
 
 namespace SocialNetwork.Migrations;
 
@@ -13,7 +14,7 @@ public static class Migrator
         return collection
             .AddFluentMigratorCore()
             .ConfigureRunner(builder => builder
-                .WithGlobalConnectionString(provider => provider.GetRequiredService<DbConnectionStringBuilder>().ToString())
+                .WithGlobalConnectionString("Database=social-network;Username=social-network-service;Password=postgres;Host=localhost;Port=5432")
                 .AddPostgres()
                 .ScanIn(typeof(CreateUsers).Assembly).For.Migrations())
             .AddLogging(x => x.AddFluentMigratorConsole());

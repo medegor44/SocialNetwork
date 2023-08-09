@@ -14,9 +14,9 @@ public class Dialogs : Migration
             .WithColumn("CreateDate").AsDateTimeOffset()
             .WithColumn("Text").AsString();
 
-        Execute.Sql(@"SELECT create_reference_table('""Cities""');");
-        Execute.Sql(@"SELECT create_reference_table('""Users""');");
-        Execute.Sql(@"SELECT create_distributed_table('""Dialogs""', 'From');");
+        // Execute.Sql(@"SELECT create_reference_table('""Cities""');");
+        // Execute.Sql(@"SELECT create_reference_table('""Users""');");
+        // Execute.Sql(@"SELECT create_distributed_table('""Dialogs""', 'From');");
     }
 
     public override void Down()

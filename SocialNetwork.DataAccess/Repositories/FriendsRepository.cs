@@ -4,19 +4,21 @@ using SocialNetwork.DataAccess.Repositories.Posts.Cache;
 using SocialNetwork.Domain.Friends;
 using SocialNetwork.Domain.Friends.Entities;
 using SocialNetwork.Domain.Friends.Repositories;
+using SocialNetwork.Postgres;
 
 namespace SocialNetwork.DataAccess.Repositories;
 
 public class FriendsRepository : IFriendsRepository
 {
     private readonly NpgsqlDataSource _source;
+    private readonly IConnectionFactory _connectionFactory;
     private readonly IPostsCacheInvalidator? _invalidator;
     private const string FriendsTableName = "Friends";
     private const string UsersTableName = "Users";
 
-    public FriendsRepository(NpgsqlDataSource source, IPostsCacheInvalidator invalidator)
+    public FriendsRepository(IConnectionFactory connectionFactory, IPostsCacheInvalidator invalidator)
     {
-        _source = source;
+        _connectionFactory = connectionFactory;
         _invalidator = invalidator;
     }
 
@@ -35,7 +37,7 @@ WHERE
     u."Id" = ANY(ARRAY[@Ids]::INT8[])
 """;
 
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetSync();
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue("Ids", ids);
 
@@ -76,7 +78,7 @@ WHERE
     u."Id" = ANY(ARRAY[@Ids]::INT8[])
 """;
 
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetSync();
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue("Ids", ids);
 
@@ -140,7 +142,7 @@ WHERE
         var recentlyAddedFriends = updatedUser.Friends.Except(oldUser.Friends).ToList();
         var recentlyRemovedFriends = oldUser.Friends.Except(updatedUser.Friends).ToList();
 
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetMaster();
         await connection.OpenAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 

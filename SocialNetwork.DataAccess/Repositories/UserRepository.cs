@@ -4,18 +4,19 @@ using SocialNetwork.Domain.Users.Repositories;
 using SocialNetwork.DataAccess.DbDto;
 using SocialNetwork.DataAccess.Exceptions;
 using SocialNetwork.Domain.Users.ValueObjects;
+using SocialNetwork.Postgres;
 
 namespace SocialNetwork.DataAccess.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private readonly NpgsqlDataSource _source;
+    private readonly IConnectionFactory _connectionFactory;
     private const string UsersTableName = "Users";
     private const string CitiesTableName = "Cities";
 
-    public UserRepository(NpgsqlDataSource source)
+    public UserRepository(IConnectionFactory connectionFactory)
     {
-        _source = source;
+        _connectionFactory = connectionFactory;
     }
     
     public async Task<long> CreateAsync(User user, CancellationToken cancellationToken)
@@ -44,7 +45,7 @@ VALUES (
         @{nameof(UserDbDto.Salt)})
 RETURNING "Id"
 """;
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetMaster();
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue(nameof(dto.FirstName), dto.FirstName);
         command.Parameters.AddWithValue(nameof(dto.SecondName), dto.SecondName);
@@ -98,7 +99,7 @@ FROM
 WHERE
     u."Id" = @{nameof(UserDbDto.Id)}
 """;
-        await using var connection = _source.CreateConnection();
+        await using var connection = _connectionFactory.GetSync();
         await using var query = new NpgsqlCommand(sql, connection);
         query.Parameters.AddWithValue(nameof(UserDbDto.Id), id);
 
@@ -158,31 +159,35 @@ ORDER BY
     u."Id" ASC 
 LIMIT @{nameof(UserFilterDbDto.Limit)}
 """;
-
-        await using var connection = _source.CreateConnection();
-        var query = new NpgsqlCommand(sql, connection);
-        query.Parameters.AddWithValue(nameof(filterDbDto.FirstName), filterDbDto.FirstName);
-        query.Parameters.AddWithValue(nameof(filterDbDto.SecondName), filterDbDto.SecondName);
-        query.Parameters.AddWithValue(nameof(filterDbDto.Limit), filterDbDto.Limit);
-        query.Parameters.AddWithValue(nameof(filterDbDto.Offset), filterDbDto.Offset);
-        
-        await connection.OpenAsync(cancellationToken);
-        await using var reader = await query.ExecuteReaderAsync(cancellationToken);
-
         var users = new List<UserDbDto>(filterDbDto.Limit);
-        while (await reader.ReadAsync(cancellationToken))
-            users.Add(new()
-            {
-                Id = reader.GetInt64(0),
-                FirstName = reader.GetString(1),
-                SecondName = reader.GetString(2),
-                Age = reader.GetInt32(3),
-                Biography = reader.GetString(4),
-                CityName = reader.GetString(5),
-                CityId = reader.GetInt64(6)
-            });
 
-        return users.Select(x => new User(
+
+            var query = new NpgsqlCommand(sql);
+            query.Parameters.AddWithValue(nameof(filterDbDto.FirstName), filterDbDto.FirstName);
+            query.Parameters.AddWithValue(nameof(filterDbDto.SecondName), filterDbDto.SecondName);
+            query.Parameters.AddWithValue(nameof(filterDbDto.Limit), filterDbDto.Limit);
+            query.Parameters.AddWithValue(nameof(filterDbDto.Offset), filterDbDto.Offset);
+
+            await using (var connection = _connectionFactory.GetSync())
+            {
+                query.Connection = connection;
+                await connection.OpenAsync(cancellationToken);
+                await using var reader = await query.ExecuteReaderAsync(cancellationToken);
+
+                while (await reader.ReadAsync(cancellationToken))
+                    users.Add(new()
+                    {
+                        Id = reader.GetInt64(0),
+                        FirstName = reader.GetString(1),
+                        SecondName = reader.GetString(2),
+                        Age = reader.GetInt32(3),
+                        Biography = reader.GetString(4),
+                        CityName = reader.GetString(5),
+                        CityId = reader.GetInt64(6)
+                    });
+            }
+
+            return users.Select(x => new User(
                 x.Id,
                 new(x.FirstName),
                 new(x.SecondName),
